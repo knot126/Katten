@@ -21,7 +21,7 @@ $gFakeProfile = [
 	"age_restricted" => true,
 	"new_buddy" => false,
 	"mutual_friends" => false,
-	// "capabilities" => [],
+	// "capabilities" => [], -- seems to crash the game
 	"hide_presence" => false,
 	"friend_only_notification" => false,
 	"lite" => false,
@@ -30,7 +30,7 @@ $gFakeProfile = [
 	"level_name" => "Unknown",
 	"level_points" => 0,
 	"level_next_points" => 10000,
-	"games" => [],
+	"games" => ["PetCat"],
 ];
 
 // Log the body of the request
@@ -43,6 +43,8 @@ if ($contents = file_get_contents("php://input")) {
 
 // Respond to it
 switch ($method) {
+	// This seems to be the user creation endpoint, for some reason.
+	// Any way, I am not currently RE'ing the login endpoint.
 	case "users":
 		KtLog("Respond to /users");
 		KtRespondWithJson([
@@ -78,7 +80,6 @@ switch ($method) {
 			KtRespondWithJson([
 				"success" => true,
 				"auth_token" => "letmein",
-				// "com.ngmoco.authentication.lite" => true,
 				"username" => "none", // <- don't know if this does anything
 				"oauth_token" => "letmein",
 				"oauth_secret" => "letmein",
@@ -125,6 +126,43 @@ switch ($method) {
 			"update_interval" => 10.0,
 			"online_friends" => [],
 			"updates" => [],
+		]);
+		break;
+	
+	case "social_accounts/search":
+		KtLog("Respond to /social_accounts/search");
+		KtRespondWithJson([
+			"success" => true,
+			"social_accounts" => [],
+		]);
+		break;
+	
+	// Not really sure what it's used for ...
+	case "games":
+		// KtLog("Respond to /games");
+		// KtRespondWithJson([
+		// 	"success" => true,
+		// 	"games" => [],
+		// ]);
+		$host = KtGetHeader("Host");
+		KtRespondWithJson([
+			"success" => true,
+			"games" => [
+				[
+					"app_key" => "PetCat",
+					"name" => "PetCat",
+					"icon_url" => "http://$host/PetCat.png",
+					"publisher" => "ngmoco",
+					"catalog_url" => "http://none.invalid/",
+					"feed_url" => "http://none.invalid/",
+					"app_store_url" => "http://none.invalid/",
+					"master_product_id" => "PetCat",
+					"featured" => false,
+					"leaderboards_count" => 0,
+					"achievements_count" => 0,
+				],
+			],
+			
 		]);
 		break;
 }
