@@ -38,8 +38,10 @@ $method = $_GET["real_url"];
 KtLog("real_url = $method");
 
 if ($contents = file_get_contents("php://input")) {
-	KtLog(urldecode($contents));
+	KtLog("POST body: " . urldecode($contents));
 }
+
+//die();
 
 // Respond to it
 switch ($method) {
@@ -78,13 +80,22 @@ switch ($method) {
 		if (array_key_exists("auth_token", $_POST)) {
 			KtLog("Respond to /session (auth token)");
 			KtRespondWithJson([
-				"success" => true,
-				"auth_token" => "letmein",
-				"username" => "none", // <- don't know if this does anything
-				"oauth_token" => "letmein",
-				"oauth_secret" => "letmein",
-				"profile" => $gFakeProfile,
+				"success" => false,
 			]);
+			// KtRespondWithJson([
+			// 	"success" => true,
+			// 	"gamertag" => "none",
+			// 	"badge_id" => 0,
+			// ]);
+			// KtRespondWithJson([
+			// 	"success" => true,
+			// 	"auth_token" => "letmein",
+			// 	"gamertag" => "none", // <- don't know if this does anything
+			// 	"badge_id" => 0,
+			// 	"oauth_token" => "letmein",
+			// 	"oauth_secret" => "letmein",
+			// 	"profile" => $gFakeProfile,
+			// ]);
 		} else if (array_key_exists("device_token", $_POST)) {
 			KtLog("Respond to /session (device token)");
 			KtRespondWithJson([
