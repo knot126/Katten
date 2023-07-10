@@ -142,3 +142,10 @@ Response:
 ## Resources
 
 * https://docs.mobage.com/public/ngcore/ &mdash; Original documentation for NgCore engine, still up! You might want to make a local mirror of it just in case.
+* *We Rule* (Android)
+* *Transformers: Legends* (Android)
+* *Touch Pets: Cats* (iOS v1.4)
+
+### Wanted docs and SDKs
+
+* Plus+ SDK and docs
