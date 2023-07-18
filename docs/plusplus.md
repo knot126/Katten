@@ -15,26 +15,27 @@ For most routes, `POST` requests are submitted to the given endpoint using stand
 ## API URL format
 
 ```
-/{version}/{game_name}/{route_params ...}
+/{version}/{appname}/{rest_of_uri}
 ```
 
 * `version`: The version of the API, this is only ever `1`.
-* `game_name`: The App ID of the game we are making the request as, for example `PetCat`.
-* Route info follows this.
-
-I will use `{service}` to represent the path to the service for the given game.
+* `appname`: Name of the app, for example `PetCat`.
 
 ## Users
 
 ### Regular vs Lite users
 
-Regular users have a Gamer Tag(tm) and a password, each at least four characters long, and can interact with the full featureset for any given game. Lite users, on the other hand, seem to be per-device and are restricted from using social features. This is very similar to the Geometry Dash yellow/green user system, with yellow users being the regular users and green users being the lite users.
+Regular users have a Gamer Tag(tm) (called a gamername in the UI) and a password, each at least four characters long, and can interact with the full featureset for any given game. Lite users, on the other hand, seem to be per-device and are restricted from using social features.
+
+> **Note**: This is somewhat similar to the Geometry Dash yellow/green user system, with yellow users being the regular users and green users being the lite users.
 
 ### Create new user
 
 Creates a new user account.
 
-`POST` `{service}/users`
+```
+POST /{version}/{appname}/users
+```
 
 Request:
 
@@ -61,7 +62,7 @@ Plus+ seems to use oauth to start a login. This makes some sense as you can use 
 Log in using a given auth token.
 
 ```
-POST /session
+POST /{version}/{appname}/session
 ```
 
 Request:
@@ -78,7 +79,7 @@ Response:
 Log in using the user's username and password.
 
 ```
-POST /1/{appname}/session
+POST /{version}/{appname}/session
 ```
 
 Request:
@@ -94,7 +95,7 @@ Response:
 ### Authorise session for a game using oauth
 
 ```
-POST /1/{appname}/oauth/authorize_new
+POST /{version}/{appname}/oauth/authorize_new
 ```
 
 Request:
@@ -110,7 +111,7 @@ Response:
 Check if a session is still valid.
 
 ```
-GET /session
+GET /{version}/{appname}/session
 ```
 
 Request:
@@ -126,7 +127,7 @@ Response:
 Device tokens are used for push notifications.
 
 ```
-POST /session
+POST /{version}/{appname}/session
 ```
 
 Request:

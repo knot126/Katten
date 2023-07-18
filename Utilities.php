@@ -12,13 +12,20 @@ function KtLog(string $what) : void {
 	$dt = KtDateTime();
 	$ip = KtGetClientIP();
 	
-	$file = fopen("katten.log", "a");
+	$file = fopen("Logs/katten.log", "a");
+	
+	if (!$file) {
+		return;
+	}
+	
 	fwrite($file, "$dt $ip -- $what\n");
 	fclose($file);
 }
 
-function KtGetHeader(string $what) : string {
-	return $_SERVER['HTTP_' . str_replace("-", "_", strtoupper($what))];
+function KtGetHeader(string $what) : ?string {
+	$i = 'HTTP_' . str_replace("-", "_", strtoupper($what));
+	
+	return array_key_exists($i, $_SERVER) ? $_SERVER[$i] : null;
 }
 
 function KtGetClientIP() {
@@ -27,6 +34,57 @@ function KtGetClientIP() {
 
 function KtRespondWithJson(object | array $data) : void {
 	header("Content-Type: application/json");
-	echo json_encode($data);
+	$s = json_encode($data);
+	echo $s;
+	KtLog("Response content: " . $s);
 	die();
+}
+
+function KtLoadObject(object &$to, object $from) {
+	/**
+	 * Load everything from object $from into object $to
+	 */
+	
+	foreach (get_object_vars($from) as $key => $value) {
+		$to->$key = $value;
+	}
+}
+
+function KtRandomToken() : string {
+	/**
+	 * Cryptographically secure random token
+	 */
+	
+	return bin2hex(random_bytes(32));
+}
+
+function KtCounterNext(string $id, int $first = 1) : int {
+	/**
+	 * For a global counter, get the next value.
+	 */
+	
+	$c = new Collection("katten");
+	
+	// Setup counters on new install
+	if (!$c->has("counters")) {
+		$c->save("counters", []);
+	}
+	
+	// Load counter data
+	$counters = $c->load("counters");
+	
+	// If the counter exists, increment it
+	if (property_exists($counters, $id)) {
+		$counters->$id += 1;
+	}
+	// If it doesn't, initalise it
+	else {
+		$counters->$id = $first;
+	}
+	
+	// Save global counters
+	$c->save("counters", $counters);
+	
+	// Return current value
+	return $counters->$id;
 }

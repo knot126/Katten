@@ -1,5 +1,21 @@
 <?php
 
+function match_to_key(array $regexes, string $value) : mixed {
+	/**
+	 * Return the first regex that matches with the given value
+	 */
+	
+	for ($i = 0; $i < sizeof($regexes); $i++) {
+		$match = preg_match("~" . $regexes[$i] . "~", $value);
+		
+		if ($match) {
+			return $regexes[$i];
+		}
+	}
+	
+	return null;
+}
+
 class EndpointManager {
 	/**
 	 * An manager for endpoints which allows endpoints to be registered in the
@@ -27,8 +43,10 @@ class EndpointManager {
 		 * successful.
 		 */
 		
-		if (isset($this->endpoints[$name])) {
-			$this->endpoints[$name]($context);
+		$first_match = match_to_key(array_keys($this->endpoints), $name);
+		
+		if ($first_match) {
+			$this->endpoints[$first_match]($context);
 			return true;
 		}
 		else {

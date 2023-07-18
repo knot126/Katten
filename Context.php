@@ -9,6 +9,10 @@ class Context {
 		$this->request_body = "";
 		$this->response_body = "";
 		$this->content_type = "application/json";
+		
+		if (KtGetHeader("Content-Type") == "multipart/form-data") {
+			$this->request_body = $_POST;
+		}
 	}
 	
 	function fromGet(string $key) : ?string {
