@@ -74,7 +74,7 @@ Response:
 Log in using the user's username and password.
 
 ```
-POST /session
+POST /1/{appname}/session
 ```
 
 Request:
@@ -90,7 +90,7 @@ Response:
 ### Authorise session for a game using oauth
 
 ```
-POST /oauth/authorize_new
+POST /1/{appname}/oauth/authorize_new
 ```
 
 Request:
