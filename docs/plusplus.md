@@ -2,11 +2,15 @@
 
 This is the main social API used for *Touch Pets: Cats* (in addition to some other games!) and takes care of most of the game's online features.
 
+After ngmoco was bought by DeNA, the Plus+ API was reused for Mobage West.
+
 ## General info
 
 For most routes, `POST` requests are submitted to the given endpoint using standard query encoding for the body and it either responds with a JSON (`application/json`) or apple binary plist (`application/binary-plist`) body. Some games do not accept the binary plists, namely android games, so JSON is probably better to use.
 
 > **See also**: `NGNetworkOperation::_parseResponse:body:error:`
+
+> **Note**: Some games may also have a seprate server used for the actual gameplay events (e.g. real time network multiplayer movement info).
 
 ## API URL format
 
@@ -14,8 +18,8 @@ For most routes, `POST` requests are submitted to the given endpoint using stand
 /{version}/{game_name}/{route_params ...}
 ```
 
-* `version`: The version of the API, probably `1`.
-* `game_name`: The human name of the game we are making the request as, for example `PetCat`.
+* `version`: The version of the API, this is only ever `1`.
+* `game_name`: The App ID of the game we are making the request as, for example `PetCat`.
 * Route info follows this.
 
 I will use `{service}` to represent the path to the service for the given game.
@@ -134,3 +138,14 @@ Response:
 *N/A*
 
 > **See**: `PlusRequest.updateSessionDeviceToken`
+
+## Resources
+
+* https://docs.mobage.com/public/ngcore/ &mdash; Original documentation for NgCore engine, still up! You might want to make a local mirror of it just in case.
+* *We Rule* (Android)
+* *Transformers: Legends* (Android)
+* *Touch Pets: Cats* (iOS v1.4)
+
+### Wanted docs and SDKs
+
+* Plus+ SDK and docs
