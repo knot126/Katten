@@ -12,7 +12,7 @@ $gEndpoints->add("katten/test/getparams", function (Context $context) {
 	$context->sendJson($_GET);
 });
 
-$gEndpoints->add("katten/ping", function (Context $context) {
+$gEndpoints->add("ping", function (Context $context) {
 	$context->sendJson([
 		"success" => true,
 	]);
@@ -117,7 +117,9 @@ $gEndpoints->add("session", function (Context $context) {
 		}
 	}
 	// Update device_token for push notifications (we dont do those)
-	else if ($context->fromPost("device_token")) {
+	// HACK: Something doesn't work properly so we need to manually check for
+	// device_token from php://input
+	else if ($context->fromPost("device_token") || str_contains(file_get_contents("php://input"), "device_token")) {
 		$context->sendJson([
 			"success" => true,
 		]);
@@ -137,7 +139,7 @@ $gEndpoints->add("oauth/authorize_new", function (Context $context) {
 	 */
 	
 	$key = $context->fromPost("key");
-	$fake = sha256("I don't know what I'm doing");
+	$fake = "d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87";
 	
 	$context->sendJson([
 		"success" => true,
@@ -145,6 +147,37 @@ $gEndpoints->add("oauth/authorize_new", function (Context $context) {
 		"oauth_secret" => $fake,
 	]);
 });
+
+$gEndpoints->add("user_updates", function (Context $context) {
+	/**
+	 * Theoretically this does something with game-specific oauth tokens, but
+	 * really I can't be bothered to implement that so it's not game specific
+	 */
+	
+	$response = [
+		"success" => true,
+		"online_friends" => [],
+		"updates" => [],
+	];
+	
+	$context->sendJson($response);
+});
+
+// $gEndpoints->add("games", function (Context $context) {
+// 	/**
+// 	 * Theoretically this does something with game-specific oauth tokens, but
+// 	 * really I can't be bothered to implement that so it's not game specific
+// 	 */
+// 	
+// 	$key = $context->fromPost("key");
+// 	$fake = "d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87";
+// 	
+// 	$context->sendJson([
+// 		[
+// 			"app_key" => $context->fromGet("appname"),
+// 		],
+// 	]);
+// });
 
 function main() : void {
 	global $gEndpoints;

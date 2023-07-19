@@ -11,6 +11,7 @@ function KtDateTime() : string {
 function KtLog(string $what) : void {
 	$dt = KtDateTime();
 	$ip = KtGetClientIP();
+	$host = $_SERVER["SERVER_NAME"];
 	
 	$file = fopen((is_dir("Logs") ? "Logs/katten.log" : "../../Logs/touchpet.log"), "a");
 	
@@ -18,7 +19,7 @@ function KtLog(string $what) : void {
 		return;
 	}
 	
-	fwrite($file, "$dt $ip -- $what\n");
+	fwrite($file, "$dt $host $ip -- $what\n");
 	fclose($file);
 }
 
