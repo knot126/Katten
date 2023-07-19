@@ -1,0 +1,80 @@
+Maybe this is helpful? https://issuetracker.google.com/issues/36997740?pli=1
+
+================================================================================
+Legends (com.mobage.ww.a926.Transformers_Android):
+
+07-18 08:44:28.197  3475  3475 D AndroidRuntime: Shutting down VM
+07-18 08:44:28.200  3475  3475 E AndroidRuntime: FATAL EXCEPTION: main
+07-18 08:44:28.200  3475  3475 E AndroidRuntime: Process: com.mobage.ww.a926.Transformers_Android, PID: 3475
+07-18 08:44:28.200  3475  3475 E AndroidRuntime: java.lang.RuntimeException: Unable to instantiate activity ComponentInfo{com.mobage.ww.a926.Transformers_Android/com.ngmoco.marketingapp.PackageApplication}: java.lang.ClassNotFoundException: Didn't find class "com.ngmoco.marketingapp.PackageApplication" on path: DexPathList[[zip file "/data/app/~~9UxU7FR98iufDJX4_FsBlg==/com.mobage.ww.a926.Transformers_Android-UCCmCOuPo8Gp-g6koYbKpw==/base.apk"],nativeLibraryDirectories=[/data/app/~~9UxU7FR98iufDJX4_FsBlg==/com.mobage.ww.a926.Transformers_Android-UCCmCOuPo8Gp-g6koYbKpw==/lib/arm, /system/fake-libs, /data/app/~~9UxU7FR98iufDJX4_FsBlg==/com.mobage.ww.a926.Transformers_Android-UCCmCOuPo8Gp-g6koYbKpw==/base.apk!/lib/armeabi-v7a, /system/lib, /system/system_ext/lib, /system/product/lib, /system/vendor/lib]]
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3613)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3864)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:103)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:135)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:95)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2253)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.os.Handler.dispatchMessage(Handler.java:106)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.os.Looper.loopOnce(Looper.java:201)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.os.Looper.loop(Looper.java:288)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.ActivityThread.main(ActivityThread.java:7870)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at java.lang.reflect.Method.invoke(Native Method)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:548)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1003)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: Didn't find class "com.ngmoco.marketingapp.PackageApplication" on path: DexPathList[[zip file "/data/app/~~9UxU7FR98iufDJX4_FsBlg==/com.mobage.ww.a926.Transformers_Android-UCCmCOuPo8Gp-g6koYbKpw==/base.apk"],nativeLibraryDirectories=[/data/app/~~9UxU7FR98iufDJX4_FsBlg==/com.mobage.ww.a926.Transformers_Android-UCCmCOuPo8Gp-g6koYbKpw==/lib/arm, /system/fake-libs, /data/app/~~9UxU7FR98iufDJX4_FsBlg==/com.mobage.ww.a926.Transformers_Android-UCCmCOuPo8Gp-g6koYbKpw==/base.apk!/lib/armeabi-v7a, /system/lib, /system/system_ext/lib, /system/product/lib, /system/vendor/lib]]
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at dalvik.system.BaseDexClassLoader.findClass(BaseDexClassLoader.java:218)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at java.lang.ClassLoader.loadClass(ClassLoader.java:379)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at java.lang.ClassLoader.loadClass(ClassLoader.java:312)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.AppComponentFactory.instantiateActivity(AppComponentFactory.java:95)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.Instrumentation.newActivity(Instrumentation.java:1285)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3600)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        ... 12 more
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        Suppressed: java.lang.NoClassDefFoundError: Failed resolution of: Lcom/ngmoco/gamejs/activity/GameJSActivity;
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:                at java.lang.VMClassLoader.findLoadedClass(Native Method)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:                at java.lang.ClassLoader.findLoadedClass(ClassLoader.java:738)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:                at java.lang.ClassLoader.loadClass(ClassLoader.java:363)
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:                ... 16 more
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:        Caused by: java.lang.ClassNotFoundException: com.ngmoco.gamejs.activity.GameJSActivity
+07-18 08:44:28.200  3475  3475 E AndroidRuntime:                ... 19 more
+07-18 08:44:28.205   844  1689 W Adreno-EGL: <qeglDrvAPI_eglGetConfigAttrib:607>: EGL_BAD_ATTRIBUTE
+07-18 08:44:28.208   488  1249 W ActivityTaskManager:   Force finishing activity com.mobage.ww.a926.Transformers_Android/com.ngmoco.marketingapp.PackageApplication
+07-18 08:44:28.209   488  3498 I DropBoxManagerService: add tag=data_app_crash isTagEnabled=true flags=0x2
+
+
+
+================================================================================
+We Rule (com.mobage.ww.a429.Kingdoms_Android):
+
+07-18 08:58:42.981  4998  4998 D AndroidRuntime: Shutting down VM
+07-18 08:58:42.982  4998  4998 E AndroidRuntime: FATAL EXCEPTION: main
+07-18 08:58:42.982  4998  4998 E AndroidRuntime: Process: com.mobage.ww.a429.Kingdoms_Android, PID: 4998
+07-18 08:58:42.982  4998  4998 E AndroidRuntime: java.lang.RuntimeException: Unable to instantiate activity ComponentInfo{com.mobage.ww.a429.Kingdoms_Android/com.ngmoco.marketingapp.PackageApplication}: java.lang.ClassNotFoundException: Didn't find class "com.ngmoco.marketingapp.PackageApplication" on path: DexPathList[[zip file "/data/app/~~77VwTBbTkT86IQPilBdxGQ==/com.mobage.ww.a429.Kingdoms_Android-hgAK8r0LxKbeWD50Kcm89g==/base.apk"],nativeLibraryDirectories=[/data/app/~~77VwTBbTkT86IQPilBdxGQ==/com.mobage.ww.a429.Kingdoms_Android-hgAK8r0LxKbeWD50Kcm89g==/lib/arm, /system/fake-libs, /data/app/~~77VwTBbTkT86IQPilBdxGQ==/com.mobage.ww.a429.Kingdoms_Android-hgAK8r0LxKbeWD50Kcm89g==/base.apk!/lib/armeabi-v7a, /system/lib, /system/system_ext/lib, /system/product/lib, /system/vendor/lib]]
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3613)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3864)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:103)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:135)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:95)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2253)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.os.Handler.dispatchMessage(Handler.java:106)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.os.Looper.loopOnce(Looper.java:201)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.os.Looper.loop(Looper.java:288)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.ActivityThread.main(ActivityThread.java:7870)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at java.lang.reflect.Method.invoke(Native Method)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:548)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1003)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: Didn't find class "com.ngmoco.marketingapp.PackageApplication" on path: DexPathList[[zip file "/data/app/~~77VwTBbTkT86IQPilBdxGQ==/com.mobage.ww.a429.Kingdoms_Android-hgAK8r0LxKbeWD50Kcm89g==/base.apk"],nativeLibraryDirectories=[/data/app/~~77VwTBbTkT86IQPilBdxGQ==/com.mobage.ww.a429.Kingdoms_Android-hgAK8r0LxKbeWD50Kcm89g==/lib/arm, /system/fake-libs, /data/app/~~77VwTBbTkT86IQPilBdxGQ==/com.mobage.ww.a429.Kingdoms_Android-hgAK8r0LxKbeWD50Kcm89g==/base.apk!/lib/armeabi-v7a, /system/lib, /system/system_ext/lib, /system/product/lib, /system/vendor/lib]]
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at dalvik.system.BaseDexClassLoader.findClass(BaseDexClassLoader.java:218)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at java.lang.ClassLoader.loadClass(ClassLoader.java:379)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at java.lang.ClassLoader.loadClass(ClassLoader.java:312)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.AppComponentFactory.instantiateActivity(AppComponentFactory.java:95)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.Instrumentation.newActivity(Instrumentation.java:1285)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3600)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        ... 12 more
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        Suppressed: java.lang.NoClassDefFoundError: Failed resolution of: Lcom/ngmoco/gamejs/activity/GameJSActivity;
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:                at java.lang.VMClassLoader.findLoadedClass(Native Method)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:                at java.lang.ClassLoader.findLoadedClass(ClassLoader.java:738)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:                at java.lang.ClassLoader.loadClass(ClassLoader.java:363)
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:                ... 16 more
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:        Caused by: java.lang.ClassNotFoundException: com.ngmoco.gamejs.activity.GameJSActivity
+07-18 08:58:42.982  4998  4998 E AndroidRuntime:                ... 19 more
+07-18 08:58:42.991   488   620 W ActivityTaskManager:   Force finishing activity com.mobage.ww.a429.Kingdoms_Android/com.ngmoco.marketingapp.PackageApplication
+07-18 08:58:42.992   488  5023 I DropBoxManagerService: add tag=data_app_crash isTagEnabled=true flags=0x2

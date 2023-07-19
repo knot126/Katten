@@ -1,8 +1,34 @@
 # Plus+
 
-This is the main social API used for *Touch Pets: Cats* (in addition to some other games!) and takes care of most of the game's online features.
+Plus+ is the main social API used for *Touch Pets: Cats* (in addition to some other games!) and takes care of most of the game's online features.
 
-After ngmoco was bought by DeNA, the Plus+ API was reused for Mobage West.
+## History
+
+It's helpful to have a bit of history about these APIs before we begin to talk about them.
+
+The Plus+ social gaming service was launched by Ngmoco on 15 June 2009, when they were still an independent company. It was provided to third party developers via an SDK, and used a custom API for interacting with the server.
+
+On 12 October 2010, Ngmoco was accquired by DeNA, a Japanese game developer and publisher. DeNA had its own social gaming service, *Mobage Town*, which launched in 2006 and was mainly restricted to Japan.
+
+> **Note**: There are two services named Mobage: *Mobage Town* (later renamed to just *Mobage*) and *Yahoo! Mobage*. I'm not currently sure what the difference between them is, other than the site hinting that Mobage => Phones and Yahoo => PC.
+
+"Mobage Town" was renamed to simply Mobage in March 2011, and the Plus+ service was also rebranded to Mobage. Internally, these seem to be called "Mobage East" and "Mobage West" respectively, since they have different APIs and features.
+
+> **Note**: There is also a third API for China, which is split into two different APIs for simple and traditional Chinese. Yes, it seems like it's actually different from the Japanese one. Don't ask me why they did this, they must have been insane.
+
+
+
+### References
+
+* https://en.wikipedia.org/wiki/Plus%2B
+* https://en.wikipedia.org/wiki/Ngmoco
+* https://en.wikipedia.org/wiki/DeNA
+* https://en.wikipedia.org/wiki/Mobage
+* https://www.mbga.jp/
+* https://docs.mobage.com/display/cnspapp/ngcore
+* https://web.archive.org/web/20130401161156/http://www.plusplus.com/
+* ngCore docs (see 'Resources' section)
+* Some original research into ngCore engine
 
 ## General info
 
