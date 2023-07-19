@@ -6,7 +6,7 @@ function match_to_key(array $regexes, string $value) : mixed {
 	 */
 	
 	for ($i = 0; $i < sizeof($regexes); $i++) {
-		$match = preg_match("~" . $regexes[$i] . "~", $value);
+		$match = preg_match("~^" . $regexes[$i] . "$~", $value);
 		
 		if ($match) {
 			return $regexes[$i];

@@ -15,7 +15,7 @@ class Context {
 		}
 	}
 	
-	function fromGet(string $key) : ?string {
+	function fromGet(string $key) : null | string | array {
 		$value = null;
 		
 		if (array_key_exists($key, $_GET)) {
@@ -25,7 +25,7 @@ class Context {
 		return $value;
 	}
 	
-	function fromPost(string $key) : ?string {
+	function fromPost(string $key) : null | string | array {
 		$value = null;
 		
 		if (array_key_exists($key, $_POST)) {

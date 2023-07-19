@@ -3,7 +3,12 @@
 $cUsers = new Collection("users");
 $cSessions = new Collection("sessions");
 
+#[AllowDynamicProperties]
 class User {
+	/**
+	 * Info about a user and some auth info
+	 */
+	
 	public $id;
 	public $password;
 	public $age_restricted;
@@ -18,14 +23,14 @@ class User {
 	public $opt_in;
 	public $distribution_name;
 	
-	function __construct(?string $id = null) {
+	function __construct(null | string | int $id = null) {
 		global $cUsers;
 		
 		if ($id && $cUsers->has($id)) {
 			KtLoadObject($this, $cUsers->load($id));
 		}
 		else if ($id) {
-			die("Cannot load user by id $id: user does not exist");
+			KtError("Cannot load user by id $id: user does not exist");
 		}
 	}
 	
@@ -89,11 +94,11 @@ class User {
 		return null;
 	}
 	
-	function set_password(string $password) {
+	function set_password(string $password) : void {
 		$this->password = password_hash($password, PASSWORD_ARGON2ID);
 	}
 	
-	function check_password(string $guess) {
+	function check_password(string $guess) : bool {
 		return password_verify($guess, $this->password);
 	}
 }
@@ -106,4 +111,68 @@ function user_exists(string $id) : bool {
 
 function user_password_is_good(string $password) : bool {
 	return strlen($password) >= 4;
+}
+
+class Session {
+	/**
+	 * Account session
+	 */
+	
+	public $id;
+	public $user_id;
+	
+	function __construct(?string $id = null) {
+		global $cSessions;
+		
+		if ($id && $cSessions->has($id)) {
+			KtLoadObject($this, $cSessions->load($id));
+		}
+		else if ($id) {
+			KtError("Cannot load session by name $id: session does not exist");
+		}
+	}
+	
+	function save() : void {
+		global $cSessions;
+		$cSessions->save($this->id, $this);
+	}
+	
+	function create(User $user, string $password) : bool {
+		/**
+		 * Create a new session using the user's name and password
+		 */
+		
+		if (!$user->check_password($password)) {
+			return false;
+		}
+		
+		$this->id = KtRandomToken();
+		$this->user_id = $user->id;
+		
+		$this->save();
+		
+		return true;
+	}
+	
+	function package() : array {
+		/**
+		 * Package sessions info into the format the games want
+		 * 
+		 * This will include the user's id and oauth tokens
+		 */
+		
+		return [
+			"user_id" => $this->user_id,
+			"oauth_token" => $this->id,
+			"oauth_secret" => $this->id,
+			"oauth2_token" => $this->id,
+			"auth_token" => $this->id,
+		];
+	}
+}
+
+function session_exists(string $id) : bool {
+	global $cSessions;
+	
+	return $cSessions->has($id);
 }

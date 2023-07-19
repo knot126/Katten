@@ -12,7 +12,7 @@ function KtLog(string $what) : void {
 	$dt = KtDateTime();
 	$ip = KtGetClientIP();
 	
-	$file = fopen("Logs/katten.log", "a");
+	$file = fopen((is_dir("Logs") ? "Logs/katten.log" : "../../Logs/touchpet.log"), "a");
 	
 	if (!$file) {
 		return;
@@ -38,6 +38,13 @@ function KtRespondWithJson(object | array $data) : void {
 	echo $s;
 	KtLog("Response content: " . $s);
 	die();
+}
+
+function KtError(string $message) : void {
+	KtRespondWithJson([
+		"success" => false,
+		"error_msg" => $message,
+	]);
 }
 
 function KtLoadObject(object &$to, object $from) {
@@ -67,7 +74,7 @@ function KtCounterNext(string $id, int $first = 1) : int {
 	
 	// Setup counters on new install
 	if (!$c->has("counters")) {
-		$c->save("counters", []);
+		$c->save("counters", ["_global" => 1]);
 	}
 	
 	// Load counter data

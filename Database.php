@@ -99,15 +99,15 @@ class Collection {
 		}
 	}
 	
-	function get_item_path(string $item) : string {
+	function get_item_path(string | int $item) : string {
 		/**
 		 * Get the path to the file in the database.
 		 */
 		
-		return $this->path . str_replace("/", ".", $item);
+		return $this->path . str_replace("/", "", "$item");
 	}
 	
-	function load(string $item) : object | array | null {
+	function load(string | int $item) : object | array | null {
 		/**
 		 * Load a database object
 		 */
@@ -128,7 +128,7 @@ class Collection {
 		return $data;
 	}
 	
-	function save(string $item, $data) : void {
+	function save(string | int $item, $data) : void {
 		/**
 		 * Save a database object
 		 */
@@ -138,7 +138,7 @@ class Collection {
 		fclose($file);
 	}
 	
-	function delete(string $item) : void {
+	function delete(string | int $item) : void {
 		/**
 		 * Remove a database object
 		 */
@@ -146,7 +146,7 @@ class Collection {
 		unlink($this->get_item_path($item));
 	}
 	
-	function has(string $item) : bool {
+	function has(string | int $item) : bool {
 		$path = $this->get_item_path($item);
 		
 		return file_exists($path) && !is_dir($path);
