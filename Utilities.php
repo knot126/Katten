@@ -13,7 +13,21 @@ function KtLog(string $what) : void {
 	$ip = KtGetClientIP();
 	$host = $_SERVER["SERVER_NAME"];
 	
-	$file = fopen((is_dir("Logs") ? "Logs/katten.log" : "../../Logs/touchpet.log"), "a");
+	$path = "Logs/katten.log";
+	
+	// Not in root dir
+	if (!is_dir("Logs")) {
+		// We are in /touchpet
+		if (is_dir("gamedata")) {
+			$path = "../Logs/touchpet.log";
+		}
+		// We are in /touchpet/gamedata
+		else {
+			$path = "../../Logs/touchpet.log";
+		}
+	}
+	
+	$file = fopen($path, "a");
 	
 	if (!$file) {
 		return;
