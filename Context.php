@@ -47,7 +47,21 @@ class Context {
 		die();
 	}
 	
+	function useXml() : Context {
+		$this->content_type = "text/xml";
+		return $this;
+	}
+	
+	function setBody(string $body) : Context {
+		$this->response_body = $body;
+		return $this;
+	}
+	
 	function sendJson(object | array $data) : void {
 		$this->toJson($data)->send();
+	}
+	
+	function sendXml(string $data) : void {
+		$this->useXml()->setBody($data)->send();
 	}
 }
