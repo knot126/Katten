@@ -22,12 +22,14 @@ class User {
 	public $gender;
 	public $opt_in;
 	public $distribution_name;
+	public $data;
 	
 	function __construct(null | string | int $id = null) {
 		global $cUsers;
 		
 		if ($id && $cUsers->has($id)) {
 			KtLoadObject($this, $cUsers->load($id));
+			$this->data = new DataItems($this->data);
 		}
 		else if ($id) {
 			KtError("Cannot load user by id $id: user does not exist");
@@ -63,6 +65,7 @@ class User {
 		
 		// Decide between lite and non-lite user info
 		if (array_key_exists("lite", $info)) {
+			$this->gamertag = "Player$this->id";
 			$this->lite = (int) $info["lite"];
 		}
 		else {
@@ -88,6 +91,8 @@ class User {
 				$this->distribution_name = $info["distribution_name"];
 			}
 		}
+		
+		$this->data = new DataItems();
 		
 		$this->save();
 		
@@ -175,4 +180,44 @@ function session_exists(string $id) : bool {
 	global $cSessions;
 	
 	return $cSessions->has($id);
+}
+
+#[AllowDynamicProperties]
+class DataItems {
+	public $items;
+	
+	function __construct(null | array | object $items = null) {
+		if (is_array($items)) {
+			$this->items = $items;
+		}
+		else if (is_object($items)) {
+			$this->items = get_object_vars($items);
+		}
+		else {
+			$this->items = ["__items__" => null];
+		}
+	}
+	
+	function getRealPath(array $path) : string {
+		return join(".", $path);
+	}
+	
+	function get(array $path, mixed $default = null) : mixed {
+		$path = $this->getRealPath($path);
+		return array_key_exists($path, $this->items) ? $this->items[$path] : $default;
+	}
+	
+	function set(array $path, mixed $data) : string {
+		$path = $this->getRealPath($path);
+		$this->items[$path] = $data;
+		return $path;
+	}
+	
+	function pget(int $cat, int $prop, mixed $default = null) : mixed {
+		return $this->get(["PetCat.$cat.$prop"], $default);
+	}
+	
+	function pset(int $cat, int $prop, mixed $val) : void {
+		$this->set(["PetCat.$cat.$prop"], $val);
+	}
 }

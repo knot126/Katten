@@ -50,6 +50,11 @@ class EndpointManager {
 			return true;
 		}
 		else {
+			// Run the default enpoint if it exists
+			if (array_key_exists("@default", $this->endpoints)) {
+				$this->endpoints["@default"]($context);
+			}
+			
 			return false;
 		}
 	}

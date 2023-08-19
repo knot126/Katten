@@ -13,7 +13,7 @@ if (!defined("KATTEN_LOADED")) {
  * - Database locks. These are important!
  */
 
-$gDatabasePath = "./katten.db/";
+$gDatabasePath = isset($gDatabasePathOverride) ? $gDatabasePathOverride : "./katten.db/";
 
 class RDBObject {
 	/**
