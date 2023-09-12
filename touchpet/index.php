@@ -25,9 +25,13 @@ KtLog("Post data to touchpet/index.php:\n" . file_get_contents("php://input"));
 $gEndpoints->add("player", function (Context $context) {
 	$info = "<players>";
 	$info .= "<player>";
+	
 	// It seems like the game initialises a lot of things much further than if this
 	// is set than it isn't set.
 	$info .= '<property category="10" id="0">1</property>';
+	
+	// This is the property for coins
+	$info .= '<property category="1" id="3">100000</property>';
 	
 	for ($i = 0; $i < 10000; $i++) {
 		$info .= '<inventory inventoryID="' . "$i" . '" known="1" rewarded="0" owned="1" gifted="0" timeacquired="1692404008" quantity="99" decaystate="0"/>';
@@ -57,7 +61,11 @@ $gEndpoints->add("setplayerproperty", function (Context $context) {
 });
 
 $gEndpoints->add("pets", function (Context $context) {
-	$context->sendXml("<pets></pets>");
+	$context->sendXml('<pets>
+	<pet>
+		<property category="10" id="0">1</property>
+	</pet>
+</pets>');
 });
 
 // $gEndpoints->add("@default", function (Context $context) {
@@ -67,4 +75,6 @@ $gEndpoints->add("pets", function (Context $context) {
 // Run the endpoint
 $context = new Context();
 $context->useXml();
-$gEndpoints->run($context->fromPost("cmd"), $context);
+$cmd = $context->fromPost("cmd");
+if (!$cmd) { die("No command"); }
+$gEndpoints->run($cmd, $context);
