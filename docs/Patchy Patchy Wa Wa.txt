@@ -2,3 +2,7 @@ Patch loginError:
 
 In tokens func:        d61f8  20 00 00 0a -> 00 f0 20 e3
 In player model func:  d590c  04 00 00 0a -> 00 f0 20 e3
+
+Patch gStayOffline:
+
+In networkSend:        150ff4 04 00 00 1a -> 00 f0 20 e3
