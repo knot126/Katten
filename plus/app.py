@@ -1,28 +1,6 @@
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, url_for
 
 app = Flask(__name__)
-
-# Bogus snowflake implementation for now
-_SNOWFLAKE_COUNTER = 0
-
-def snowflake():
-	global _SNOWFLAKE_COUNTER
-	
-	_SNOWFLAKE_COUNTER = (_SNOWFLAKE_COUNTER + 1) & 0xFFF
-	
-	import time
-	
-	return ((int(time.time() * 1000) - 1709164800000) << 22) | _SNOWFLAKE_COUNTER
-
-@app.route("/_test/snowflakes/<int:count>")
-def test_snowflakes(count):
-	out = ""
-	
-	for i in range(count):
-		sf = snowflake()
-		out += f"{hex(sf)} {sf}<br/>"
-	
-	return out
 
 # Identification page
 @app.route("/")
@@ -47,6 +25,22 @@ def get_games(version, appname):
 	return {
 		"error": 0,
 		"games": [],
+	}
+
+# Badges
+@app.get("/<int:version>/<appname>/badges")
+def badges(version, appname):
+	return {
+		"error": 0,
+		"list": [
+			{
+				"name": "General",
+				"badges": [
+					{ "icon_url": f"http://{request.host}" + url_for("static", filename = "0.png") },
+					{ "icon_url": f"http://{request.host}" + url_for("static", filename = "1.png") },
+				],
+			}
+		],
 	}
 
 # Users

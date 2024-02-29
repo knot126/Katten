@@ -41,7 +41,7 @@ For most routes, `POST` requests are submitted to the given endpoint using stand
 ## API URL format
 
 ```
-/{version}/{appname}/{rest_of_uri}
+/{version}/{appname}/
 ```
 
 * `version`: The version of the API, this is only ever `1`.
