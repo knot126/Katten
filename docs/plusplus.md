@@ -65,7 +65,26 @@ POST /{version}/{appname}/users
 
 Request:
 
-*N/A*
+*From Topple2Plus, signing up for full account. Orignally query string encoded.*
+
+```py
+{
+    "id": "e40dec3b93dbfad74032908c276045b7cceee477", # Session ID
+    "device_type": "iPhone",
+    "user[gamertag]": "ejhd",
+    "locale": "en_US",
+    "user[age_restricted]": "0",
+    "user[badge_id]": "http://app.plusplus.com/static/1.png",
+    "os_version": "5.0.1",
+    "user[last_name]": "Last",
+    "user[motto]": "",
+    "user[password]": "aaaa",
+    "user[email]": "d@d.d",
+    "user[opt_in]": "0", # Opt in to email updates?
+    "user[password_confirmation]": "aaaa",
+    "user[first_name]": "First"
+}
+```
 
 Response:
 
@@ -96,7 +115,15 @@ Request:
 * \[*Base login info*\]
 * `auth_token`: The auth token to log in with.
 
+OR something like:
+
+```
+ImmutableMultiDict([('id', 'e40dec3b93dbfad74032908c276045b7cceee477'), ('gamertag', 'knot'), ('password', 'knot'), ('device_type', 'iPhone'), ('os_version', '5.0.1'), ('locale', 'en_US')])
+```
+
 Response:
+
+* Seems to return both an auth token (session token?) and oauth token/secret which could probably pass on to the game server.
 
 *N/A*
 

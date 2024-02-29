@@ -1,6 +1,13 @@
-from flask import Flask, request, make_response, url_for
+from flask import Flask, request, g, make_response, url_for
+from database import Database
 
 app = Flask(__name__)
+
+def db():
+	if "db" not in g:
+		g.db = Database()
+	
+	return g.db
 
 # Identification page
 @app.route("/")
@@ -46,9 +53,10 @@ def badges(version, appname):
 # Users
 @app.post("/<int:version>/<appname>/users")
 def users_register(version, appname):
-	print(request.form)
-	
-	return {}
+	return {
+		"success": True,
+		
+	}
 
 @app.post("/<int:version>/<appname>/users/validate")
 def users_validate(version, appname):
@@ -58,4 +66,16 @@ def users_validate(version, appname):
 	
 	return {
 		"success": True,
+	}
+
+@app.post("/<int:version>/<appname>/session")
+def session_init(version, appname):
+	print(request.form)
+	
+	return {
+		"success": True,
+		"auth_token": "PutARealSessionTokenHere",
+		"oauth_token": "TokenXthatsXsentXtoXserverXsoXitXneverXseesXaccountXpw",
+		"oauth_secret": "AndXaXsecretXtoXbeXsure",
+		"user_id": 1,
 	}
