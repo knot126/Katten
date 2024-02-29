@@ -18,3 +18,5 @@
 5. Upload the `PetCat` binary to the folder using http file browser.
 6. In terminal run `su; chmod 777 PetCat` (or `chmod +x PetCat` may also work)
 7. It should run!!!
+
+> Note: `su` password is usually `alpine`
