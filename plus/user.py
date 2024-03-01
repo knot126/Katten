@@ -22,7 +22,7 @@ class UserDB:
 	def spawn(self):
 		self.db.run("""
 			CREATE TABLE IF NOT EXISTS users (
-				user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				id INT NOT NULL,
 				gamertag VARCHAR(255) NOT NULL,
 				badge_id TEXT(3000) NOT NULL,
 				photo_url TEXT(3000) NOT NULL,
@@ -34,12 +34,23 @@ class UserDB:
 				last_name VARCHAR(100) NOT NULL,
 				fullname_privacy BOOLEAN NOT NULL,
 				age_restricted BOOLEAN NOT NULL,
+				PRIMARY KEY (id AUTOINCREMENT)
+			);
+			
+			CREATE TABLE IF NOT EXISTS sessions (
+				id TEXT NOT NULL,
+				user_id INT,
+				extra TEXT NOT NULL,
+				PRIMARY KEY (id)
 			);
 		""")
 	
-	def insert_new(self, user):
+	def insert(self, user):
 		self.db.run("""INSERT INTO users (gamertag, badge_id, photo_url, motto, email, phone_number, password, first_name, last_name, fullname_privacy, age_restricted) 
 		               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", [
 			user.gamertag, user.badge_id, user.photo_url, user.motto, user.email, user.phone_number,
 			user.password, user.first_name, user.last_name, user.fullname_privacy, user.age_restricted
 		])
+	
+	def select(self, user):
+		

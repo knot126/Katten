@@ -27,6 +27,7 @@ On 12 October 2010, Ngmoco was accquired by DeNA, a Japanese game developer and 
 * https://www.mbga.jp/
 * https://docs.mobage.com/display/cnspapp/ngcore
 * https://web.archive.org/web/20130401161156/http://www.plusplus.com/
+* https://www.mtv.com/news/o1xn4l/ngmoco-responds-to-plus-obsolescence-concerns-with-game-center
 * ngCore docs (see 'Resources' section)
 * Some original research into ngCore engine
 

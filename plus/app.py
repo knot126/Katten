@@ -68,6 +68,15 @@ def users_validate(version, appname):
 		"success": True,
 	}
 
+@app.post("/<int:version>/<appname>/users/<int:uid>/user_data")
+def user_data(version, appname, uid):
+	
+	print(request.form)
+	
+	return {
+		"error": 1,
+	}
+
 @app.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
 	print(request.form)
