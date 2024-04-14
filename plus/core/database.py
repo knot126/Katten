@@ -17,3 +17,9 @@ class Database():
 	
 	def do(self, qs, *args):
 		return self.run(qs, args)
+
+def db():
+	if "db" not in g:
+		g.db = Database()
+	
+	return g.db

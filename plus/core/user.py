@@ -71,4 +71,4 @@ class UserDB:
 		u = self.db.do("""SELECT * FROM users WHERE id = ?""", user.user_id)
 	
 	def select_session(self, user):
-		
+		pass
