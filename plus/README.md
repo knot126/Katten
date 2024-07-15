@@ -24,3 +24,24 @@ python3 -m pip install flask pymongo
 ```
 
 ## Design
+
+*TODO: Write this.*
+
+## Testing
+
+Testing can be done (hopefully!) without a jailbroken iPhone by using mitmproxy as a reverse proxy to the Plus server:
+
+*start plus server:*
+
+```sh
+# In plus folder:
+$ flask run --debug
+```
+
+*start reverse proxy:*
+
+```sh
+$ mitmweb --mode reverse:http://localhost:5000
+```
+
+Then set your iPhone to use a proxy at your computer's IP on port 8080 (mitmproxy default).

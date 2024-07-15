@@ -54,21 +54,19 @@ def users_validate(version, appname):
 
 @app.post("/<int:version>/<appname>/users/<int:uid>/user_data")
 def user_data(version, appname, uid):
-	
-	print(request.form)
-	
 	return {
 		"error": 1,
 	}
 
 @app.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
-	print(request.form)
+	# Katten doesn't really care about OAuth 1.0's signing things; it's only
+	# relevant over an insecure HTTP connection anyway.
 	
 	return {
 		"success": True,
 		"auth_token": "PutARealSessionTokenHere",
 		"oauth_token": "TokenXthatsXsentXtoXserverXsoXitXneverXseesXaccountXpw",
-		"oauth_secret": "AndXaXsecretXtoXbeXsure",
+		"oauth_secret": "oauth_secret",
 		"user_id": 1,
 	}
