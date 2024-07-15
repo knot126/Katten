@@ -3,11 +3,6 @@
 def index():
 	return "<p><i>Katten Plus+ server</i></p>"
 
-# Hack to make touch pets games happy
-@app.get("/touchpet/gamedata/get_dlc.php")
-def touchpet_gamedata_getdlc_hack():
-	return ""
-
 # Ping
 @app.get("/<int:version>/<appname>/ping")
 def ping(version, appname):

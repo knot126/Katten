@@ -3,6 +3,8 @@ from pathlib import Path
 import os
 import os.path
 
+from persist import Persistent
+
 app = Flask(__name__)
 
 def require(path):
@@ -25,5 +27,4 @@ def require_dir(path):
 			print(f"Require {f} ...")
 			require(f)
 
-require_dir("core")
 require_dir("routes")
