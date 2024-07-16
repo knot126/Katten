@@ -40,7 +40,7 @@ class Persistent:
 		if id:
 			self.load(id)
 		else:
-			self._id = id
+			self._id = self.get_class().make_id()
 			self._ver = self.get_class().version
 			self.on_init()
 	

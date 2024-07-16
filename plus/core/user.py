@@ -255,7 +255,15 @@ def make_login_response(user, session):
 		"user_id": user.get_id(),
 	}
 	
-	response["messages"] = []
+	response["messages"] = [
+		{
+			"title": "Katten Server",
+			"text": "Welcome to Katten server!",
+			"url": "https://example.com",
+			"alert": True,
+			"web_view": False,
+		}
+	]
 	response["profile"] = user.to_dict()
 	
 	return response
