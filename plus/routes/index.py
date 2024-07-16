@@ -170,7 +170,7 @@ def session_init(version, appname):
 	if "auth_token" in request.form:
 		session = UserSession.lookup({"token": request.form["auth_token"]})
 		
-		if not session.validate():
+		if not session or not session.validate():
 			return {"success": False, "error_msg": "Session is not valid"}
 		
 		user = session.get_user()
