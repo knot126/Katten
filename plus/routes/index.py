@@ -122,7 +122,7 @@ def user_data_set(version, appname, user_id):
 	
 	user = User.current()
 	data = request.form.to_dict()
-	print(data)
+	
 	UserAppDataEntry.set(appname, user.get_id(), data["key"], data["privacy"], request.files["value"].read())
 	
 	return {
@@ -193,3 +193,16 @@ def session_init(version, appname):
 	# 	"oauth_secret": "totally_real_oauth_secret",
 	# 	"user_id": 1,
 	# }
+
+@app.get("/<int:version>/<appname>/session")
+def session_get_status(version, appname):
+	"""
+	Get the status of the session for the given device and game.
+	"""
+	
+	user = User.current()
+	
+	if user:
+		return {"success": True}
+	else:
+		raise Exception("Not implemented")
