@@ -4,6 +4,7 @@ import argon2
 import secrets
 import re
 import base64
+import hashlib
 from collections import namedtuple
 
 def password_hash(password):
@@ -52,6 +53,7 @@ class User(Persistent):
 		self.age_restricted = 0
 	
 	def on_load(self):
+		self.age_restricted = int(self.age_restricted)
 		# print(self.__dict__)
 		pass
 	

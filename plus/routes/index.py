@@ -90,6 +90,17 @@ def users_update(version, appname, user_id):
 	
 	return {}
 
+@app.get("/<int:version>/<appname>/users/<gamertag>")
+def users_lookup_by_gamertag(version, appname, gamertag):
+	user = User.lookup({"gamertag": gamertag})
+	
+	if not user:
+		return {"success": False, "error_msg": "User does not exist"}
+	
+	result = user.to_dict()
+	result["success"] = True
+	return result
+
 @app.post("/<int:version>/<appname>/users/validate")
 def users_validate(version, appname):
 	"""
@@ -160,6 +171,17 @@ def user_data_get_keys(version, appname, user_id):
 		"datas": datas,
 	}
 
+@app.get("/<int:version>/<appname>/user_updates")
+def get_user_updates(version, appname):
+	user = User.current()
+	
+	return {
+		"success": True,
+		"online_friends": [],
+		"updates": [],
+		"update_interval": PLUS_USER_UPDATE_INTERVAL,
+	}
+
 @app.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
 	# Katten doesn't really care about OAuth 1.0's signing things; it's only
@@ -195,6 +217,22 @@ def session_init(version, appname):
 	# 	"oauth_secret": "totally_real_oauth_secret",
 	# 	"user_id": 1,
 	# }
+
+@app.post("/<int:version>/<appname>/oauth/authorize_new")
+def oauth_authorize_new(version, appname):
+	"""
+	This should do something oauth related but we can just return the typcial
+	login response.
+	"""
+	
+	session = UserSession.current()
+	
+	if not session or not session.validate():
+		return {"success": False, "error_msg": "Session is not valid"}
+	
+	user = session.get_user()
+	
+	return make_login_response(user, session)
 
 @app.get("/<int:version>/<appname>/session")
 def session_get_status(version, appname):
