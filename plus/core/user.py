@@ -51,7 +51,8 @@ class User(Persistent):
 		self.age_restricted = 0
 	
 	def on_load(self):
-		print(self.__dict__)
+		# print(self.__dict__)
+		pass
 	
 	def get_id(self):
 		return self._id
@@ -83,6 +84,9 @@ class User(Persistent):
 	def set_motto(self, motto):
 		self.motto = motto
 	
+	def set_phone_number(self, pn):
+		self.phone_number = pn
+	
 	def set_badge_url(self, url):
 		self.badge_id = url
 	
@@ -90,8 +94,11 @@ class User(Persistent):
 		self.first_name = first
 		self.last_name = last
 	
+	def set_fullname_privacy(self, value):
+		self.fullname_privacy = int(value)
+	
 	def set_age_restricted(self, ar):
-		self.age_restricted = ar
+		self.age_restricted = int(ar)
 	
 	def set_opt_in(self, optin):
 		self.opt_in = not not optin

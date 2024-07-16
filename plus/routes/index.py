@@ -51,6 +51,21 @@ def users_register(version, appname):
 	# 	"error_msg": "User creation not supported"
 	# }
 
+@app.put("/<int:version>/<appname>/users/<int:user_id>")
+def users_update(version, appname, user_id):
+	user = User.current()
+	
+	user_info = request.form.to_dict()
+	
+	user.set_motto(user_info.get("motto", ""))
+	user.set_phone_number(user_info.get("phone_number", ""))
+	user.set_badge_url(user_info.get("badge_id", ""))
+	user.set_real_name(user_info.get("first_name", ""), user_info.get("last_name", ""))
+	user.set_email(user_info.get("email", ""))
+	user.set_fullname_privacy(user_info.get("fullname_privacy", 0))
+	
+	return {}
+
 @app.post("/<int:version>/<appname>/users/validate")
 def users_validate(version, appname):
 	"""
