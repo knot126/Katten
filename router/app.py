@@ -14,6 +14,7 @@ app.url_map.add(Rule("/<path:morepath>", endpoint = "route"))
 
 SERVER_MAP = {
 	"app.plusplus.com": "localhost:5100",
+	"dogs2.ngmoco.com": "localhost:5200",
 	"cats.ngmoco.com": "localhost:5200",
 }
 

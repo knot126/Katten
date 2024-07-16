@@ -29,7 +29,7 @@ python3 -m pip install flask pymongo argon2-cffi
 
 ## Testing
 
-Testing can be done (hopefully!) without a jailbroken iPhone by using mitmproxy as a reverse proxy to the Plus server:
+Testing can be done with a jailbroken iPhone and modified game binary by using mitmproxy as a reverse proxy to the Plus server:
 
 *start plus server:*
 
@@ -37,6 +37,8 @@ Testing can be done (hopefully!) without a jailbroken iPhone by using mitmproxy 
 # In plus folder:
 $ flask run --debug
 ```
+
+(Also remember to run MongoDB)
 
 *start reverse proxy:*
 
