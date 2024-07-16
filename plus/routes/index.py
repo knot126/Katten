@@ -16,7 +16,27 @@ def get_games(version, appname):
 	return {
 		"success": True,
 		# "error": 0,
-		"games": [],
+		"games": [
+			{
+				"app_key": appname,
+				"name": appname,
+				"publisher": "Katten Server",
+				"category": "unknown",
+				"featured": False,
+				"leaderboards_count": 0,
+				"achievements_count": 0,
+				"id": 1,
+				"master_product_id": 1,
+				"icon_url": f"http://{request.host}" + url_for("static", filename = "0.png"),
+				"app_store_url": "",
+				"feed_url": "",
+				"catalog_url": "",
+				"description": "This is the current game.",
+				"phone_screenshot_urls": [],
+				"phone_thumbnail_urls": [],
+				"promotion_image_url": "",
+			}
+		],
 	}
 
 # Badges
