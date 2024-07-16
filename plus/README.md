@@ -9,18 +9,18 @@ Notes:
 
 ## Depends
 
-You need to install flask and pymongo.
+You need to install flask, pymongo and argon2-cffi.
 
 ### Arch Linux
 
 ```sh
-sudo pacman -Syu python-flask python-pymongo
+sudo pacman -Syu python-flask python-pymongo python-argon2_cffi
 ```
 
 ### Using pip
 
 ```sh
-python3 -m pip install flask pymongo
+python3 -m pip install flask pymongo argon2-cffi
 ```
 
 ## Design

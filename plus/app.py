@@ -27,4 +27,5 @@ def require_dir(path):
 			print(f"Require {f} ...")
 			require(f)
 
+require("core/user.py")
 require_dir("routes")

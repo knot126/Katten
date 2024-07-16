@@ -30,34 +30,19 @@ class Persistent:
 	
 	version = 0
 	
-	def __init__(self):
+	def __init__(self, id = None):
 		"""
-		Default constructor for a persistent object. Just creates an empty object.
-		"""
-		
-		pass
-	
-	@classmethod
-	def create(self, id = None):
-		"""
-		Same as non-classmethod create() except it automatically makes a target
-		object.
+		Default constructor for a persistent object. Loads the object with the 
+		given id if it exists, otherwise and sets id and version info then calls
+		on_init() but does not actually create the object in the DB yet.
 		"""
 		
-		obj = self()
-		obj.create(id)
-		return obj
-	
-	@classmethod
-	def load(self, id):
-		"""
-		Same as non-classmethod load() except it automatically makes a target
-		object.
-		"""
-		
-		obj = self()
-		obj.load(id)
-		return obj
+		if id:
+			self.load(id)
+		else:
+			self._id = id
+			self._ver = self.get_class().version
+			self.on_init()
 	
 	@classmethod
 	def lookup(self, filter):
@@ -66,8 +51,8 @@ class Persistent:
 		"""
 		
 		obj = self()
-		obj.load(None, filter)
-		return obj
+		exists = obj.load(None, filter)
+		return obj if exists else None
 	
 	@classmethod
 	def make_id(self):
@@ -88,29 +73,6 @@ class Persistent:
 		
 		return (coll.find_one({"_id": id}) != None)
 	
-	def create(self, id = None):
-		"""
-		Create a new, non-existing object.
-		"""
-		
-		# Init object data structure
-		if (id == None):
-			id = self.get_class().make_id()
-		
-		self._id = id
-		self._ver = self.get_class().version
-		
-		if (self.get_class().exists(id)):
-			raise Exception("Object with id already exists!")
-		
-		# User init function
-		self.on_init()
-		
-		# Save initial object to DB
-		coll = get_collection(self.get_class_name())
-		
-		coll.insert_one(self.__dict__)
-	
 	def load(self, id, filter = None):
 		"""
 		Load an existing persistent object into this object
@@ -124,6 +86,9 @@ class Persistent:
 		
 		result = coll.find_one(filter)
 		
+		if (filter and result == None):
+			return False
+		
 		if (result == None):
 			raise Exception("Object does not yet exist!")
 		
@@ -135,6 +100,8 @@ class Persistent:
 		# Check for data structure upgrades
 		if (self.get_class().version > self.get_version()):
 			self.on_update(self._ver)
+		
+		return True
 	
 	def save(self):
 		"""
@@ -147,7 +114,7 @@ class Persistent:
 		# Save data
 		coll = get_collection(self.get_class_name())
 		
-		coll.find_one_and_replace({"_id": self._id}, self.__dict__)
+		coll.find_one_and_replace({"_id": self._id}, self.__dict__, upsert=True)
 	
 	def delete(self):
 		"""
