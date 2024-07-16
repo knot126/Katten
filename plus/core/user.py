@@ -98,6 +98,7 @@ class User(Persistent):
 	
 	def to_dict(self):
 		result = self.__dict__.copy()
+		result["user_id"] = result["_id"]
 		del result["_id"]
 		del result["_ver"]
 		del result["password"]

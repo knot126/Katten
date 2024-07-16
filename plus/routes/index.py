@@ -87,9 +87,16 @@ def session_init(version, appname):
 	# Katten doesn't really care about OAuth 1.0's signing things; it's only
 	# relevant over an insecure HTTP connection anyway.
 	
-	return {
-		"error_msg": "Login not supported yet!"
-	}
+	try:
+		result = User.login(request.form["gamertag"], request.form["password"])
+		
+		return make_login_response(result.user, result.session)
+	except LoginError:
+		return {"error_msg": "Wrong username or password"}
+	
+	# return {
+	# 	"error_msg": "Login not supported yet!"
+	# }
 	
 	# return {
 	# 	"success": False,
