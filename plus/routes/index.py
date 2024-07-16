@@ -86,6 +86,8 @@ def users_update(version, appname, user_id):
 	user.set_email(user_info.get("email", ""))
 	user.set_fullname_privacy(user_info.get("fullname_privacy", 0))
 	
+	user.save()
+	
 	return {}
 
 @app.post("/<int:version>/<appname>/users/validate")
