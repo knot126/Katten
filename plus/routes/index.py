@@ -7,14 +7,15 @@ def index():
 @app.get("/<int:version>/<appname>/ping")
 def ping(version, appname):
 	return make_response({
-		"error": 0,
+		"success": True,
 	})
 
 # Games
 @app.get("/<int:version>/<appname>/games")
 def get_games(version, appname):
 	return {
-		"error": 0,
+		"success": True,
+		# "error": 0,
 		"games": [],
 	}
 
@@ -22,7 +23,8 @@ def get_games(version, appname):
 @app.get("/<int:version>/<appname>/badges")
 def badges(version, appname):
 	return {
-		"error": 0,
+		"success": True,
+		# "error": 0,
 		"list": [
 			{
 				"name": "General",
@@ -89,12 +91,51 @@ def users_validate(version, appname):
 		case "first_name" | "last_name":
 			msg = None if validate_first_or_last(value) else f"Invalid {field.replace('_', ' ')}"
 	
-	return {} if not msg else {"error_msg": msg}
+	return {"success": True} if not msg else {"success": False, "error_msg": msg}
 
-@app.post("/<int:version>/<appname>/users/<int:uid>/user_data")
-def user_data(version, appname, uid):
+@app.post("/<int:version>/<appname>/users/<int:user_id>/user_data")
+def user_data_set(version, appname, user_id):
+	"""
+	Save a key-value pair; ignores user id for now as it's not possbile to
+	change someone else's user data atm.
+	"""
+	
+	user = User.current()
+	data = request.form.to_dict()
+	print(data)
+	UserAppDataEntry.set(appname, user.get_id(), data["key"], data["privacy"], request.files["value"].read())
+	
 	return {
-		"error": 1,
+		"success": True
+	}
+
+@app.get("/<int:version>/<appname>/users/<int:user_id>/user_data/<key>")
+def user_data_get_one(version, appname, user_id, key):
+	"""
+	Get a single value from user data storage
+	"""
+	
+	user = User.current()
+	data = UserAppDataEntry.get(appname, user.get_id(), key)
+	
+	return Response(data, mimetype='application/octet-stream')
+
+@app.get("/<int:version>/<appname>/users/<int:user_id>/user_data")
+def user_data_get_keys(version, appname, user_id):
+	"""
+	Get a list of keys that are stored for the given user
+	"""
+	
+	user = User.current()
+	
+	datas = []
+	
+	for entry in UserAppDataEntry.lookup_many({"game": appname, "user": user.get_id()}):
+		datas.append(entry.key)
+	
+	return {
+		"success": True,
+		"datas": datas,
 	}
 
 @app.post("/<int:version>/<appname>/session")
@@ -102,12 +143,24 @@ def session_init(version, appname):
 	# Katten doesn't really care about OAuth 1.0's signing things; it's only
 	# relevant over an insecure HTTP connection anyway.
 	
-	try:
-		result = User.login(request.form["gamertag"], request.form["password"])
+	# If there is an auth_token instead of gamertag and password then we're
+	# logging in using an existing session.
+	if "auth_token" in request.form:
+		session = UserSession.lookup({"token": request.form["auth_token"]})
 		
-		return make_login_response(result.user, result.session)
-	except LoginError:
-		return {"error_msg": "Wrong username or password"}
+		if not session.validate():
+			return {"success": False, "error_msg": "Session is not valid"}
+		
+		user = session.get_user()
+		
+		return make_login_response(user, session)
+	else:
+		try:
+			result = User.login(request.form["gamertag"], request.form["password"])
+			
+			return make_login_response(result.user, result.session)
+		except LoginError:
+			return {"error_msg": "Wrong username or password"}
 	
 	# return {
 	# 	"error_msg": "Login not supported yet!"

@@ -3,6 +3,7 @@ import time
 import argon2
 import secrets
 import re
+import base64
 from collections import namedtuple
 
 def password_hash(password):
@@ -257,7 +258,7 @@ def make_login_response(user, session):
 	
 	response = {
 		"success": True,
-		"auth_token": "totally_real_auth_token",
+		"auth_token": session.get_token(),
 		"oauth_token": session.get_token(),
 		"oauth_secret": "totally_real_oauth_secret",
 		"user_id": user.get_id(),
@@ -275,3 +276,42 @@ def make_login_response(user, session):
 	response["profile"] = user.to_dict()
 	
 	return response
+
+class UserAppDataEntry(Persistent):
+	"""
+	A key->value data pair stored in Plus+ for use by games.
+	"""
+	
+	def on_init(self):
+		self.game = None
+		self.user = None
+		self.key = None
+		self.privacy = 0
+		self.value = None
+	
+	@classmethod
+	def set(self, game, user_id, key, privacy, value):
+		# try to load current value
+		entry = self.lookup({"game": game, "user": user_id, "key": key})
+		
+		if not entry:
+			entry = self()
+		
+		entry.game = game
+		entry.user = user_id
+		entry.key = key
+		entry.privacy = privacy
+		entry.value = base64.b64encode(value)
+		
+		entry.save()
+	
+	@classmethod
+	def get(self, game, user_id, key):
+		entry = self.lookup({"game": game, "user": user_id, "key": key})
+		
+		if not entry:
+			return None
+		
+		# TODO privacy stuff, probably
+		
+		return base64.b64decode(entry.value)

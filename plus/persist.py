@@ -59,6 +59,8 @@ class Persistent:
 		"""
 		Make a new identifier which is definitely unique. The default
 		implementation is an incremental counter starting from 1.
+		
+		TODO: This is not a reliable implementation.
 		"""
 		
 		return (get_collection(self.__name__).count_documents({}) + 1)
@@ -72,6 +74,20 @@ class Persistent:
 		coll = get_collection(self.__name__)
 		
 		return (coll.find_one({"_id": id}) != None)
+	
+	def load_from_data(self, data):
+		"""
+		Finish loading the object from data
+		"""
+		
+		self.__dict__ = dict(data)
+		
+		# User load function
+		self.on_load()
+		
+		# Check for data structure upgrades
+		if (self.get_class().version > self.get_version()):
+			self.on_update(self._ver)
 	
 	def load(self, id, filter = None):
 		"""
@@ -92,16 +108,28 @@ class Persistent:
 		if (result == None):
 			raise Exception("Object does not yet exist!")
 		
-		self.__dict__ = dict(result)
-		
-		# User load function
-		self.on_load()
-		
-		# Check for data structure upgrades
-		if (self.get_class().version > self.get_version()):
-			self.on_update(self._ver)
+		self.load_from_data(result)
 		
 		return True
+	
+	@classmethod
+	def lookup_many(self, filter):
+		"""
+		Load many objects by a filter
+		"""
+		
+		# Load from DB
+		coll = get_collection(self.get_class_name())
+		result = coll.find(filter)
+		
+		objects = []
+		
+		for r in result:
+			obj = self()
+			obj.load_from_data(r)
+			objects.append(obj)
+		
+		return objects
 	
 	def save(self):
 		"""
