@@ -28,12 +28,12 @@ def validate_email(email):
 def validate_first_or_last(first_or_last):
 	return re.match(r"^[A-Z][a-z]*$", first_or_last) != None
 
-class ValidationError(Exception): pass
-class UserExistsError(Exception): pass
-class InvalidUserError(Exception): pass
-class PasswordsDoNotMatchError(Exception): pass
-class EmailUsedError(Exception): pass
-class LoginError(Exception): pass
+class ValidationError(Exception): pass # General error validating some data
+class UserExistsError(Exception): pass # User with a gamertag already exists
+class PasswordsDoNotMatchError(Exception): pass # Passwords don't match
+class EmailUsedError(Exception): pass # The email is already used by someone else
+class LoginError(Exception): pass # Errors while logging in
+class SessionError(Exception): pass # When a session does not exist
 
 UserAndSession = namedtuple("UserAndSession", "user session")
 
@@ -173,12 +173,15 @@ class User(Persistent):
 		return UserAndSession(user, session)
 	
 	@classmethod
-	def current(self):
+	def current(self, throw = True):
 		"""
 		Get the current user
+		
+		throw: If an exception should be raised instead of returning None when
+		there is no current user.
 		"""
 		
-		session = UserSession.current()
+		session = UserSession.current(throw)
 		
 		if not session:
 			return None
@@ -233,12 +236,15 @@ class UserSession(Persistent):
 		return session
 	
 	@classmethod
-	def current(self):
+	def current_(self):
 		"""
 		Get the current session, if still valid, otherwise return None
 		"""
 		
-		token = request.authorization.get("oauth_token", None)
+		try:
+			token = request.authorization.get("oauth_token", None)
+		except AttributeError:
+			return None
 		
 		if not token:
 			return None
@@ -250,6 +256,20 @@ class UserSession(Persistent):
 		
 		if not session.validate():
 			return None
+		
+		return session
+	
+	@classmethod
+	def current(self, throw=True):
+		"""
+		Same as current_() but with the option to throw an exception instead
+		of reutrning None.
+		"""
+		
+		session = self.current_()
+		
+		if not session and throw:
+			raise SessionError("There is no current session")
 		
 		return session
 

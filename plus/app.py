@@ -28,4 +28,5 @@ def require_dir(path):
 			require(f)
 
 require("core/user.py")
+require("core/game.py")
 require_dir("routes")
