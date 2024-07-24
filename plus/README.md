@@ -9,6 +9,13 @@ Notes:
 
 ## Status
 
+- [ ] Core
+  - [ ] Implemented routes return:
+    - [x] `success` (`true` or `false`)
+    - [ ] `error` (integer error code, only on error)
+    - [x] `error_msg` (error description, only on error)
+  - [ ] OAuth 1.0 support
+    - Note: Currently there is a hack that just uses the session token instead of an oauth token. 
 - [ ] Users and sessions
   - [x] Create an account
   - [x] Log in with username and password
@@ -16,8 +23,6 @@ Notes:
   - [ ] Query session status for device and game combonation
   - [ ] Update device token
   - [ ] Password reset
-  - [ ] OAuth 1.0 support
-    - Note: Currently there is a hack that just uses the session token instead of an oauth token. 
   - [ ] ...
 - [ ] Friends and enimies
   - [ ] Find users
