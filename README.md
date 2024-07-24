@@ -6,10 +6,6 @@ Katten is a reverse engineering, documentation and attempt at a full reimplement
 
 Despite that these games were shut down over 10 years ago on 31 March 2013, we would still like to play them again.
 
-[Join the Discord!](https://discord.gg/2JFkT4skYY)
-
 ## Status
 
-There is currently a very basic reimplementation of the server written in PHP in the `php` folder. It can get the games to boot, but doesn't save any progress and the code is a mess.
-
-Once I am able to start this project again, I plan to switch to using a more modern web framework and to split Plus+ and Touch Pets server so that the Plus+ reimplementation can be used for any game.
+See [the project news](NEWS.md) for status updates.
