@@ -9,8 +9,14 @@ import urllib.request, urllib.parse, http.client
 from urllib.error import HTTPError
 
 app = Flask(__name__)
+
+# for rule in app.url_map.iter_rules():
+# 	app.url_map._rules.remove(rule)
+
+app.url_map = type(app.url_map)()
 app.url_map.add(Rule("/", endpoint = "route"))
 app.url_map.add(Rule("/<path:morepath>", endpoint = "route"))
+app.url_map.add(Rule("/static/<path:morepath>", endpoint = "route"))
 
 SERVER_MAP = {
 	"app.plusplus.com": "localhost:5100",

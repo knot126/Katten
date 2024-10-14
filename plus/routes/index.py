@@ -182,6 +182,17 @@ def get_user_updates(version, appname):
 		"update_interval": PLUS_USER_UPDATE_INTERVAL,
 	}
 
+@app.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
+def users_buddies(version, appname, user_id):
+	user = User.current()
+	
+	return {
+		"success": True,
+		"list": [],
+		"offset": 0,
+		"total": 0,
+	}
+
 @app.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
 	# Katten doesn't really care about OAuth 1.0's signing things; it's only
