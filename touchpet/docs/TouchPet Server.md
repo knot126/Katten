@@ -6,60 +6,62 @@ Most interaction happens using a single route: `http://cats.ngmoco.com/touchpet/
 
 ## Commands
 
-### `player`
+many command names are of a standard format:
 
-This presumably gets player info as well as sets the session secret.
+- `{classname}` - query a single object
+- `{classname}s` - query multipule objects
+- `set{classname}property` - set a property on an object of type [classname]
 
-> **Note**
-> 
-> Katten Server does not use OAuth, so any session tokens or secrets are set to the session ID on the katten server.
+they accept some standard arguments:
 
-#### Request example
+- `{classname}ID={int}` - id of object to manipulate
+- `playerID={int}` - id of the player preforming this action
+- `categoryID={int}` - the property's category
+- `propertyID={int}` - the property's id
+- `propertyvalue={int}` - value to set property to
+- `ifgreaterthan={int}`
 
-```
-version=1&cmd=player&playerID=12&playerID=12&sessionToken=d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87&sessionSecret=d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87
-```
+boring ones:
 
-### `setplayerproperty`
+- `version=1` - (probably) api version, always 1
+- `sessionToken={sessiontoken}` - the session token
 
-Sets a property value on a player.
+### Notes
 
-See: `SELoginMgr::setupInitialPlayerModel:`
+- `selectID`: used for selcting things by player ID (and maybe other id's?)
 
-#### Request example
-
-```
-version=1&cmd=setplayerproperty&categoryID=10&propertyID=0&propertyvalue=1&ifgreaterthan=0&playerID=12&sessionToken=d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87
-```
-
-### `pets`
-
-Presumably gets the player's pets.
-
-#### Request example
-
-```
-version=1&cmd=pets&selectID=12&playerID=12&sessionToken=d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87
-```
-
-### `mega`
-
-#### Request example
-
-```
-version=1&cmd=mega&count=25&pluscount=25&followercount=25&playerID=12&sessionToken=d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87
-```
-
-### `missionsmega`
-
-#### Request example
-
-```
-version=1&cmd=missionsmega&typeID=0&count=25&pluscount=25&followercount=25&playerID=12&sessionToken=d2d4a592700b0920658e5d56ed50ebfaa82b1f4a3e105e9bcfd8bcbb081c2e87
-```
+#### SERemotePropertyChange
 
 ## DLC
 
 There are some other php files at `http://cats.ngmoco.com/touchpet/gamedata/` that are mostly responsible for DLC and basic game messages. It seems like they can be ignored safely and returning a blank page is enough to get the game past this point.
 
 > I have some idea of what get_dlc.php is doing: https://cohost.org/knot126/post/2159659-i-am-now-hosting-a-c/
+
+## XML responses
+
+Any plural of a class name (`className + "s"`) or the string `"results"` are ignored.
+
+```xml
+<mega count="(int)" totalcount="(int)" pluscount="(int)" followercount="(int)" totalpluscount="(int)" totalfollowercount="(int)">
+```
+
+```xml
+<pets> <!-- or any acceptable plural of the class of objects, or "results" -->
+	<pet> <!-- or any object -->
+		<property id="(int)" category="(int)">(int)</property>
+		<relationship ...>...</relationship>
+		<playdate ...>...</playdate>
+		<inventory inventoryID="(int)" known="(bool)" rewarded="(bool)" owned="(bool)" gifted="(bool)" timeacquired="(int)" quantity="(int)" decaystate="(int)" fromdogID="[int]" todogID="[int]" timegifted="[int]" isnew="[bool]">...</inventory>
+		<loot ...>...</loot>
+	</pet>
+</pets>
+```
+
+```xml
+<servertime>(int)</servertime>
+```
+
+```xml
+<dataversion>(int)</dataversion> <!-- see: gDatabaseVersion -->
+```

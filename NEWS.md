@@ -1,5 +1,9 @@
 # News, project status and changelog
 
+## 2024-10-13
+
+I have tried to look into the touchpets database model more and I believe I am starting to understand it.
+
 ## 2024-07-24
 
 The flask implementations of Plus+ and the Touch Pets server can now replace the older mess written in PHP.
