@@ -43,7 +43,7 @@ There are some other php files at `http://cats.ngmoco.com/touchpet/gamedata/` th
 Any plural of a class name (`className + "s"`) or the string `"results"` are ignored.
 
 ```xml
-<mega count="(int)" totalcount="(int)" pluscount="(int)" followercount="(int)" totalpluscount="(int)" totalfollowercount="(int)">
+<mega count="(int)" totalcount="(int)" pluscount="(int)" followercount="(int)" totalpluscount="(int)" totalfollowercount="(int)"/>
 ```
 
 ```xml
@@ -65,3 +65,9 @@ Any plural of a class name (`className + "s"`) or the string `"results"` are ign
 ```xml
 <dataversion>(int)</dataversion> <!-- see: gDatabaseVersion -->
 ```
+
+## Startup
+
+`-[SELoginMgr backgroundFetch]` does the initial `setplayerproperty` for cat=10 prop=0. if there is a player object in the response then its values are used, otherwise they are initialised to defaults
+
+`-[SELoginMgr backgroundFetch]` sends message `[SEPetModel fetchItemsForPlayerID: [[SEPlayerModel myPlayer] playerID] cache: NO]`, if no list of pets is returned then it is a login error

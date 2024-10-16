@@ -101,7 +101,8 @@ def touchpet_index():
 			categoryId = int(request.form["categoryID"])
 			propertyId = int(request.form["propertyID"])
 			Property.set("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
-			return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
+			# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
+			return Response(finish_response(), mimetype="text/xml")
 		
 		case "clearfriends":
 			# ???
@@ -109,13 +110,16 @@ def touchpet_index():
 		
 		case "pets":
 			# for testing
-			return Response(finish_response("<pets><pet></pet></pets>"), mimetype="text/xml")
+			return Response(finish_response("<pets></pets>"), mimetype="text/xml")
 		
 		case "mega":
 			# mega
 			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"/>'), mimetype="text/xml")
 		
 		case "missionsmega":
+			return Response(finish_response(), mimetype="text/xml")
+		
+		case "playerevents":
 			return Response(finish_response(), mimetype="text/xml")
 		
 		case _:
