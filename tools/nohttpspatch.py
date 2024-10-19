@@ -464,28 +464,28 @@ def main():
 		p = Stream(b)
 		b = MachO(b)
 		
-# 		print(f"Patching a binary (for {b.getArchName()})...")
-# 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
-# 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
-# 		__LINKEDIT = b.getSegment("__LINKEDIT")
-# 		
-# 		# Find address in memory (if no relocations are preformed) and file
-# 		# offset of https followed by nul byte in the __cstring section.
-# 		addrOfHttps = __cstring.findAddress(b"https\x00")
-# 		offsetToHttps = __cstring.findOffset(b"https\x00")
-# 		print(f"address = {hex(addrOfHttps)}   offset = {hex(offsetToHttps)}")
-# 		
-# 		# Find offset to length of string in __cfstring section.
-# 		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
-# 		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
-# 		print(f"offset to length of string = {hex(offsetToLength)}")
-# 		
-# 		# Do the patch
-# 		p.patch(offsetToHttps, b"http\x00")
-# 		p.patch(offsetToLength, int32ToBytes(4))
+		print(f"Patching a binary (for {b.getArchName()})...")
+		__cstring = b.getSegment("__TEXT").getSection("__cstring")
+		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
+		__LINKEDIT = b.getSegment("__LINKEDIT")
+		
+		# Find address in memory (if no relocations are preformed) and file
+		# offset of https followed by nul byte in the __cstring section.
+		addrOfHttps = __cstring.findAddress(b"https\x00")
+		offsetToHttps = __cstring.findOffset(b"https\x00")
+		print(f"address = {hex(addrOfHttps)}   offset = {hex(offsetToHttps)}")
+		
+		# Find offset to length of string in __cfstring section.
+		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
+		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
+		print(f"offset to length of string = {hex(offsetToLength)}")
+		
+		# Do the patch
+		p.patch(offsetToHttps, b"http\x00")
+		p.patch(offsetToLength, int32ToBytes(4))
 		
 		# Fakesign and write to file
-		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
+		# pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
 		pathlib.Path(f"{infile}-fakesigned-{b.getArchName()}").write_bytes(fakesign(p.getContent()))
 		
 		pass
