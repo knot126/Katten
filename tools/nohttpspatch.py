@@ -14,9 +14,13 @@ class Stream:
 	
 	def __init__(self, contents):
 		self.f = io.BytesIO(contents)
+		self.endian = 'little'
 	
 	def setAddrSize(self, size):
 		self.addr_size = size
+	
+	def setEndian(self, endian):
+		self.endian = endian
 	
 	def getAddrSize(self):
 		return self.addr_size
@@ -56,19 +60,19 @@ class Stream:
 		self.setPos(old_pos)
 	
 	def readUInt8(self):
-		return int.from_bytes(self.read(1), 'little')
+		return int.from_bytes(self.read(1), self.endian)
 	
 	def readUInt16(self):
-		return int.from_bytes(self.read(2), 'little')
+		return int.from_bytes(self.read(2), self.endian)
 	
 	def readUInt32(self):
-		return int.from_bytes(self.read(4), 'little')
+		return int.from_bytes(self.read(4), self.endian)
 	
 	def readUInt64(self):
-		return int.from_bytes(self.read(8), 'little')
+		return int.from_bytes(self.read(8), self.endian)
 	
 	def readAddr(self):
-		return int.from_bytes(self.read(self.addr_size), 'little')
+		return int.from_bytes(self.read(self.addr_size), self.endian)
 	
 	def readFixedString(self, size):
 		"""
@@ -199,11 +203,13 @@ def split_fat(content):
 		return [content]
 	
 	f = Stream(content)
+	f.setEndian('big')
 	
 	if (f.read(4) != b"\xca\xfe\xba\xbe"):
 		raise MachOFormatError("Invalid fat binary")
 	
 	count = f.readUInt32()
+	print(hex(count))
 	binaries = []
 	
 	for i in range(count):
