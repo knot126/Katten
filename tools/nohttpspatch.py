@@ -8,6 +8,9 @@ import hashlib
 def sha1(b):
 	return hashlib.sha1(b).digest()
 
+def sha256(b):
+	return hashlib.sha256(b).digest()
+
 class MachOFormatError(Exception):
 	pass
 
@@ -190,18 +193,24 @@ class MachOSegment:
 class MachOCodeDirectory:
 	def __init__(self, f):
 		"""
-		See https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/kern/cs_blobs.h
+		See:
+		- https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/kern/cs_blobs.h
+		- https://github.com/qyang-nj/llios/blob/main/macho_parser/docs/LC_CODE_SIGNATURE.md
+		- https://github.com/xerub/ldid/blob/master/ldid2.cpp#L1240
+		- https://alfiecg.uk/2024/01/06/Ad-hoc-signing.html
 		
 		We only really need the basic header, we just want to regenerate the
 		hashes and nothing really advanced.
+		
+		Expcets big endian mode.
 		"""
 		
-		start = f.getPos()
-		magic = f.readUInt32()
+		self.filepos = f.getPos()
+		self.magic = f.readUInt32()
 		self.length = f.readUInt32()
 		self.version = f.readUInt32()
 		self.flags = f.readUInt32()
-		self.hash_offset = f.readUInt32()
+		self.hash_offset = f.readUInt32() # Offset to hash at index *zero*, skips negatives!
 		self.identifier_offset = f.readUInt32()
 		self.num_special_slots = f.readUInt32()
 		self.num_code_slots = f.readUInt32()
@@ -213,12 +222,12 @@ class MachOCodeDirectory:
 		f.readUInt32() # unused
 		
 		# Read identifier string
-		f.setPos(start + self.identifier_offset)
+		f.setPos(self.filepos + self.identifier_offset)
 		self.identifier = f.readTerminatedString()
 		
 		# Read hashes
 		self.slots = []
-		f.setPos(start + self.hash_offset - (self.hash_size * self.num_special_slots))
+		f.setPos(self.filepos + self.hash_offset - (self.hash_size * self.num_special_slots))
 		for i in range(self.num_special_slots + self.num_code_slots):
 			self.slots.append(f.read(self.hash_size))
 		# print(hex(f.getPos()))
@@ -226,11 +235,70 @@ class MachOCodeDirectory:
 	def printInfo(self):
 		print(self.__dict__)
 
+class MachOCodeSignBlob:
+	"""
+	Any unknown code sign blob becomes this. Expects big endian mode.
+	"""
+	
+	def __init__(self, f, type, offset):
+		self.type = type
+		self.offset = offset
+		self.filepos = f.getPos()
+		self.magic = f.readUInt32()
+		self.length = f.readUInt32()
+		self.content = f.read(self.length - 8)
+	
+	def printInfo(self):
+		print(f"  - {hex(self.magic)} {hex(self.length)} {self.content}")
+
+class MachOCodeSignSuperblob:
+	"""
+	The code signing super blob and everything in it
+	"""
+	
+	def __init__(self, f, cs_offset, cs_size):
+		self.code_dirs = []
+		self.blobs = []
+		self.offset = cs_offset # offset from start of file
+		self.size = cs_size # size of code signing blob
+		
+		f.push()
+		f.setPos(self.offset)
+		f.setEndian('big') # integers are big endian here for some reason
+		
+		self.magic = f.readUInt32()
+		self.length = f.readUInt32()
+		self.count = f.readUInt32()
+		
+		print(f"magic={hex(self.magic)} length={hex(self.length)} count={hex(self.count)}")
+		
+		for i in range(self.count):
+			type = f.readUInt32()
+			blob_offset = f.readUInt32()
+			blob_filepos = self.offset + blob_offset
+			print(f"type={type} offset-from-file={blob_filepos}")
+			
+			# Add raw blob data
+			f.push()
+			f.setPos(blob_filepos)
+			self.blobs.append(MachOCodeSignBlob(f, type, blob_offset))
+			self.blobs[-1].printInfo()
+			f.pop()
+			
+			# Code directory blobs also get structured data
+			if (type == 0 or 0x1000 <= type < 0x1005):
+				f.push()
+				f.setPos(blob_filepos)
+				self.code_dirs.append(MachOCodeDirectory(f))
+				f.pop()
+		
+		f.setEndian('little')
+		f.pop()
+
 class MachO:
 	def __init__(self, content):
 		f = Stream(content)
 		self.segments = []
-		self.code_dirs = []
 		
 		magic = f.readUInt32()
 		
@@ -266,31 +334,7 @@ class MachO:
 					# print(f"Skip LC type={hex(lc_type)} size={hex(lc_size)}")
 					f.skip(lc_size - 8)
 		
-		self._parseCDHashData(f)
-	
-	def _parseCDHashData(self, f):
-		f.setPos(self.cs_offset)
-		f.setEndian('big')
-		
-		sb_magic = f.readUInt32()
-		sb_length = f.readUInt32()
-		sb_count = f.readUInt32()
-		
-		print(f"magic={hex(sb_magic)} length={hex(sb_length)} count={hex(sb_count)}")
-		
-		for i in range(sb_count):
-			type = f.readUInt32()
-			offset = f.readUInt32()
-			blob_offset = self.cs_offset + offset
-			print(f"type={type} offset-from-file={blob_offset}")
-			
-			if (type == 0):
-				f.push()
-				f.setPos(blob_offset)
-				self.code_dirs.append(MachOCodeDirectory(f))
-				f.pop()
-		
-		f.setEndian('little')
+		self.cs_superblob = MachOCodeSignSuperblob(f, self.cs_offset, self.cs_size)
 	
 	def getSegment(self, name):
 		for s in self.segments:
@@ -305,7 +349,7 @@ class MachO:
 		except:
 			return f"{self.cpu_type}_{self.cpu_subtype}"
 
-def recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
+def fakesign_recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
 	"""
 	Recompute the non-special CDHashes given the binary's data and the number of
 	hashes to compute.
@@ -321,12 +365,65 @@ def recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
 		match algorithm:
 			case 1:
 				hashes.append(sha1(data))
+			case 2:
+				hashes.append(sha256(data))
 			case _:
 				raise ValueError(f"Unsupported or invalid algorithm: {algorithm}")
 		
 		current += pagesize
 	
 	return hashes
+
+def fakesign(content):
+	"""
+	Return a fakesigned version of the Mach-O given the contents. This does a
+	job similar to ldid with the -s option.
+	"""
+	
+	binary_info = MachO(content)
+	new_binary = Stream(content)
+	
+	print("Update CDHashes...")
+	
+	for cd in binary_info.cs_superblob.code_dirs:
+		print(f"Recomptue hashes for code directory at {hex(cd.filepos)} (code_limit {hex(cd.code_limit)} page_size {hex(cd.page_size)} hash_type {hex(cd.hash_type)})...")
+		
+		new_hashes = fakesign_recompute_hashes(content, cd.code_limit, cd.page_size, cd.hash_type)
+		
+		if (len(new_hashes) != cd.num_code_slots):
+			print(f"Warning: codedir hash array lengths are not equal ({len(new_hashes)} != {cd.num_code_slots}) !!")
+		
+		for i in range(len(new_hashes)):
+			if (new_hashes[i] != cd.slots[cd.num_special_slots + i]):
+				print(f"Different hash at index {i}: {new_hashes[i]} != {cd.slots[cd.num_special_slots + i]}")
+		
+		# Go to where the hashes are and write them
+		print("Write recomputed hashes")
+		new_binary.setPos(cd.filepos + cd.hash_offset)
+		new_binary.write(b"".join(new_hashes))
+	
+	print(f"Find and remove CMS digital signature blob(s)...")
+	
+	# Get info for new superblob
+	new_sb = bytearray() # New SB content
+	new_sb_count = 0 # New count
+	
+	for blob in binary_info.cs_superblob.blobs:
+		if blob.type != 0x10000:
+			new_sb += int32ToBytes(blob.type, 'big')
+			new_sb += int32ToBytes(blob.offset, 'big')
+			new_sb_count += 1
+	
+	# Add new super blob header
+	new_sb = b"\xfa\xde\x0c\xc0" + int32ToBytes(binary_info.cs_superblob.length, 'big') + int32ToBytes(new_sb_count, 'big') + new_sb
+	
+	print(f"!! New super blob: {new_sb}")
+	
+	# Seek to start of blob indexes and write it
+	new_binary.setPos(binary_info.cs_superblob.offset)
+	new_binary.write(new_sb)
+	
+	return new_binary.getContent()
 
 def split_fat(content):
 	"""
@@ -356,45 +453,38 @@ def split_fat(content):
 	
 	return binaries
 
-def int32ToBytes(value):
-	return value.to_bytes(4, 'little')
+def int32ToBytes(value, endian='little'):
+	return value.to_bytes(4, endian)
 
 def main():
 	infile = sys.argv[1]
 	binaries = split_fat(pathlib.Path(infile).read_bytes())
 	
 	for b in binaries:
-		p = Stream(b)
-		b = MachO(b)
+# 		p = Stream(b)
+# 		b = MachO(b)
+# 		
+# 		print(f"Patching a binary (for {b.getArchName()})...")
+# 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
+# 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
+# 		__LINKEDIT = b.getSegment("__LINKEDIT")
+# 		print(f"Code signing data at __LINKEDIT+{hex(b.cs_offset)} (length={hex(b.cs_size)})")
+# 		
+# 		addrOfHttps = __cstring.findAddress(b"https\x00")
+# 		offsetToHttps = __cstring.findOffset(b"https\x00")
+# 		print(f"address = {hex(addrOfHttps)}   offset = {hex(offsetToHttps)}")
+# 		
+# 		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
+# 		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
+# 		print(f"offset to length of string = {hex(offsetToLength)}")
+# 		
+# 		p.patch(offsetToHttps, b"http\x00")
+# 		p.patch(offsetToLength, int32ToBytes(4))
+# 		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
 		
-		print(f"Patching a binary (for {b.getArchName()})...")
-		__cstring = b.getSegment("__TEXT").getSection("__cstring")
-		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
-		__LINKEDIT = b.getSegment("__LINKEDIT")
-		print(f"Code signing data at __LINKEDIT+{hex(b.cs_offset)} (length={hex(b.cs_size)})")
+		fakesign(b)
 		
-		addrOfHttps = __cstring.findAddress(b"https\x00")
-		offsetToHttps = __cstring.findOffset(b"https\x00")
-		print(f"address = {hex(addrOfHttps)}   offset = {hex(offsetToHttps)}")
-		
-		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
-		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
-		print(f"offset to length of string = {hex(offsetToLength)}")
-		
-		p.patch(offsetToHttps, b"http\x00")
-		p.patch(offsetToLength, int32ToBytes(4))
-		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
-		
-		for cd in b.code_dirs:
-			print("recompute hashes...")
-			new_hashes = recompute_hashes(p.getContent(), cd.code_limit, cd.page_size, cd.hash_type)
-			
-			if (len(new_hashes) != cd.num_code_slots):
-				print(f"Warning: codedir hash array lengths are not equal ({len(new_hashes)} != {cd.num_code_slots})")
-			
-			for i in range(len(new_hashes)):
-				if (new_hashes[i] != cd.slots[cd.num_special_slots + i]):
-					print(f"Different hash at index {i}: {new_hashes[i]} != {cd.slots[cd.num_special_slots + i]}")
+		pass
 	
 	print(f"Done!")
 
