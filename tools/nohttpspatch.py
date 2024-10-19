@@ -263,6 +263,6 @@ if __name__ == "__main__":
 		
 		p.patch(offsetToHttps, b"http\x00")
 		p.patch(offsetToLength, int32ToBytes(4))
-		pathlib.Path(f"{infile}.{b.getArchName()}").write_bytes(p.getContent())
+		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
 	
 	print(f"Done!")
