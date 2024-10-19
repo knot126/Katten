@@ -25,6 +25,9 @@ class Stream:
 	def getAddrSize(self):
 		return self.addr_size
 	
+	def getContent(self):
+		return self.f.getvalue()
+	
 	def read(self, count):
 		return self.f.read(count)
 	
@@ -80,6 +83,15 @@ class Stream:
 		"""
 		
 		return self.read(size).rstrip(b'\x00').decode('utf-8')
+	
+	def writeUInt8(self, value):
+		self.write(value.to_bytes(1, self.endian))
+	
+	def writeUInt16(self, value):
+		self.write(value.to_bytes(2, self.endian))
+	
+	def writeUInt32(self, value):
+		self.write(value.to_bytes(4, self.endian))
 
 class MachOSection:
 	def __init__(self, f):
@@ -183,7 +195,7 @@ class MachO:
 					self.segments.append(MachOSegment(f))
 				
 				case _:
-					print(f"Skip LC type={lc_type} size={lc_size}")
+					# print(f"Skip LC type={hex(lc_type)} size={hex(lc_size)}")
 					f.skip(lc_size - 8)
 	
 	def getSegment(self, name):
@@ -192,6 +204,12 @@ class MachO:
 				return s
 		
 		return None
+	
+	def getArchName(self):
+		try:
+			return {0xC: {0x6: "armv6", 0x9: "armv7", 0xA: "armv7f", 0xD: "armv8"}}[self.cpu_type][self.cpu_subtype]
+		except:
+			return f"{self.cpu_type}_{self.cpu_subtype}"
 
 def split_fat(content):
 	"""
@@ -209,7 +227,6 @@ def split_fat(content):
 		raise MachOFormatError("Invalid fat binary")
 	
 	count = f.readUInt32()
-	print(hex(count))
 	binaries = []
 	
 	for i in range(count):
@@ -226,10 +243,13 @@ def int32ToBytes(value):
 	return value.to_bytes(4, 'little')
 
 if __name__ == "__main__":
-	binaries = split_fat(pathlib.Path(sys.argv[1]).read_bytes())
+	infile = sys.argv[1]
+	binaries = split_fat(pathlib.Path(infile).read_bytes())
 	
 	for b in binaries:
+		p = Stream(b)
 		b = MachO(b)
+		print(f"Patching a binary (for {b.getArchName()})...")
 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
 		
@@ -240,3 +260,9 @@ if __name__ == "__main__":
 		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
 		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
 		print(f"offset to length of string = {hex(offsetToLength)}")
+		
+		p.patch(offsetToHttps, b"http\x00")
+		p.patch(offsetToLength, int32ToBytes(4))
+		pathlib.Path(f"{infile}.{b.getArchName()}").write_bytes(p.getContent())
+	
+	print(f"Done!")
