@@ -3,18 +3,21 @@ import io
 import pathlib
 import sys
 import json
+import hashlib
 
 class MachOFormatError(Exception):
 	pass
 
 class Stream:
 	"""
-	Basic file stream wrapper
+	Basic file stream wrapper with endian control and a stack for pushing/poping
+	the current position.
 	"""
 	
 	def __init__(self, contents):
 		self.f = io.BytesIO(contents)
 		self.endian = 'little'
+		self.posStack = []
 	
 	def setAddrSize(self, size):
 		self.addr_size = size
@@ -34,14 +37,14 @@ class Stream:
 	def write(self, data):
 		self.f.write(data)
 	
+	def skip(self, count):
+		self.f.seek(count, 1)
+	
 	def getPos(self):
 		return self.f.tell()
 	
 	def setPos(self, pos):
 		self.f.seek(pos, 0)
-	
-	def skip(self, count):
-		self.f.seek(count, 1)
 	
 	def readFrom(self, pos, count):
 		"""
@@ -84,6 +87,16 @@ class Stream:
 		
 		return self.read(size).rstrip(b'\x00').decode('utf-8')
 	
+	def readTerminatedString(self):
+		s = b""
+		
+		while True:
+			c = self.read(1)
+			if c == b"\x00": break
+			s += c
+		
+		return s.decode('utf-8')
+	
 	def writeUInt8(self, value):
 		self.write(value.to_bytes(1, self.endian))
 	
@@ -92,6 +105,12 @@ class Stream:
 	
 	def writeUInt32(self, value):
 		self.write(value.to_bytes(4, self.endian))
+	
+	def push(self):
+		self.posStack.append(self.getPos())
+	
+	def pop(self):
+		self.setPos(self.posStack.pop())
 
 class MachOSection:
 	def __init__(self, f):
@@ -152,6 +171,7 @@ class MachOSegment:
 		self.vm_flags = f.readUInt32()
 		self.section_count = f.readUInt32()
 		self.flags = f.readUInt32()
+		self.content = f.readFrom(self.offset, self.size)
 		
 		self.sections = []
 		for i in range(self.section_count):
@@ -164,10 +184,50 @@ class MachOSegment:
 		
 		return None
 
+class MachOCodeDirectory:
+	def __init__(self, f):
+		"""
+		See https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/kern/cs_blobs.h
+		
+		We only really need the basic header, we just want to regenerate the
+		hashes and nothing really advanced.
+		"""
+		
+		start = f.getPos()
+		magic = f.readUInt32()
+		self.length = f.readUInt32()
+		self.version = f.readUInt32()
+		self.flags = f.readUInt32()
+		self.hash_offset = f.readUInt32()
+		self.identifier_offset = f.readUInt32()
+		self.num_special_slots = f.readUInt32()
+		self.num_code_slots = f.readUInt32()
+		self.code_limit = f.readUInt32() # End of hashed pages
+		self.hash_size = f.readUInt8() # Size of each hash
+		self.hash_type = f.readUInt8() # Hash algorithm
+		self.platform = f.readUInt8()
+		self.page_size = f.readUInt8()
+		f.readUInt32() # unused
+		
+		# Read identifier string
+		f.setPos(start + self.identifier_offset)
+		self.identifier = f.readTerminatedString()
+		
+		# Read hashes
+		self.slots = []
+		f.setPos(start + self.hash_offset - (self.hash_size * self.num_special_slots))
+		for i in range(self.num_special_slots + self.num_code_slots):
+			self.slots.append(f.read(self.hash_size))
+		print(hex(f.getPos()))
+	
+	def printInfo(self):
+		print(self.__dict__)
+
 class MachO:
 	def __init__(self, content):
 		f = Stream(content)
 		self.segments = []
+		self.code_dirs = []
 		
 		magic = f.readUInt32()
 		
@@ -194,9 +254,42 @@ class MachO:
 					# Segment
 					self.segments.append(MachOSegment(f))
 				
+				case 0x1d:
+					# Code signature
+					self.cs_offset = f.readUInt32() # Offset from __LINKEDIT section
+					self.cs_size = f.readUInt32()
+				
 				case _:
 					# print(f"Skip LC type={hex(lc_type)} size={hex(lc_size)}")
 					f.skip(lc_size - 8)
+		
+		self._parseCDHashData(f)
+	
+	def _parseCDHashData(self, f):
+		f.push()
+		f.setPos(self.cs_offset)
+		f.setEndian('big')
+		
+		sb_magic = f.readUInt32()
+		sb_length = f.readUInt32()
+		sb_count = f.readUInt32()
+		
+		print(f"magic={hex(sb_magic)} length={hex(sb_length)} count={hex(sb_count)}")
+		
+		for i in range(sb_count):
+			type = f.readUInt32()
+			offset = f.readUInt32()
+			blob_offset = self.cs_offset + offset
+			print(f"type={type} offset-from-file={blob_offset}")
+			
+			if (type == 0):
+				f.push()
+				f.setPos(blob_offset)
+				self.code_dirs.append(MachOCodeDirectory(f))
+				f.pop()
+		
+		f.setEndian('little')
+		f.pop()
 	
 	def getSegment(self, name):
 		for s in self.segments:
@@ -252,6 +345,8 @@ if __name__ == "__main__":
 		print(f"Patching a binary (for {b.getArchName()})...")
 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
+		__LINKEDIT = b.getSegment("__LINKEDIT")
+		print(f"Code signing data at __LINKEDIT+{hex(b.cs_offset)} (length={hex(b.cs_size)})")
 		
 		addrOfHttps = __cstring.findAddress(b"https\x00")
 		offsetToHttps = __cstring.findOffset(b"https\x00")
@@ -264,5 +359,7 @@ if __name__ == "__main__":
 		p.patch(offsetToHttps, b"http\x00")
 		p.patch(offsetToLength, int32ToBytes(4))
 		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
+		
+		# b.code_dirs[0].printInfo()
 	
 	print(f"Done!")
