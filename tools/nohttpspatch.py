@@ -313,15 +313,18 @@ def recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
 	
 	pagesize = 2 ** pagesize
 	hashes = []
+	current = 0
 	
-	for i in range(limit // pagesize):
-		data = binary_contents[pagesize * i:pagesize * (i + 1)]
+	while current < limit:
+		data = binary_contents[current:current + min(limit - current, pagesize)]
 		
 		match algorithm:
 			case 1:
 				hashes.append(sha1(data))
 			case _:
 				raise ValueError(f"Unsupported or invalid algorithm: {algorithm}")
+		
+		current += pagesize
 	
 	return hashes
 
