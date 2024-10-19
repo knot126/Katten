@@ -5,6 +5,9 @@ import sys
 import json
 import hashlib
 
+def sha1(b):
+	return hashlib.sha1(b).digest()
+
 class MachOFormatError(Exception):
 	pass
 
@@ -218,7 +221,7 @@ class MachOCodeDirectory:
 		f.setPos(start + self.hash_offset - (self.hash_size * self.num_special_slots))
 		for i in range(self.num_special_slots + self.num_code_slots):
 			self.slots.append(f.read(self.hash_size))
-		print(hex(f.getPos()))
+		# print(hex(f.getPos()))
 	
 	def printInfo(self):
 		print(self.__dict__)
@@ -304,6 +307,25 @@ class MachO:
 		except:
 			return f"{self.cpu_type}_{self.cpu_subtype}"
 
+def recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
+	"""
+	Recompute the non-special CDHashes given the binary's data and the number of
+	hashes to compute.
+	"""
+	
+	pagesize = 2 ** pagesize
+	hashes = []
+	
+	for i in range((limit - 1) // pagesize):
+		data = binary_contents[pagesize * i:pagesize * (i + 1)]
+		match algorithm:
+			case 1:
+				hashes.append(sha1(data))
+			case _:
+				raise ValueError(f"Unsupported or invalid algorithm: {algorithm}")
+	
+	return hashes
+
 def split_fat(content):
 	"""
 	Split a fat binary into multipule binaries, or return a list of one binary
@@ -335,13 +357,14 @@ def split_fat(content):
 def int32ToBytes(value):
 	return value.to_bytes(4, 'little')
 
-if __name__ == "__main__":
+def main():
 	infile = sys.argv[1]
 	binaries = split_fat(pathlib.Path(infile).read_bytes())
 	
 	for b in binaries:
 		p = Stream(b)
 		b = MachO(b)
+		
 		print(f"Patching a binary (for {b.getArchName()})...")
 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
@@ -360,6 +383,15 @@ if __name__ == "__main__":
 		p.patch(offsetToLength, int32ToBytes(4))
 		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
 		
-		# b.code_dirs[0].printInfo()
+		for cd in b.code_dirs:
+			print("recompute hashes...")
+			new_hashes = recompute_hashes(p.getContent(), cd.code_limit, cd.page_size, cd.hash_type)
+			
+			for i in range(len(new_hashes)):
+				if (new_hashes[i] != cd.slots[cd.num_special_slots + i]):
+					print(f"Different hash at index {i}: {new_hashes[i]} != {cd.slots[cd.num_special_slots + i]}")
 	
 	print(f"Done!")
+
+if __name__ == "__main__":
+	main()
