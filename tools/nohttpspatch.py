@@ -248,8 +248,8 @@ class MachOCodeSignBlob:
 		self.length = f.readUInt32()
 		self.content = f.read(self.length - 8)
 	
-	def printInfo(self):
-		print(f"  - {hex(self.magic)} {hex(self.length)} {self.content}")
+	def printInfo(self, full=False):
+		print(f"  - {hex(self.magic)} {hex(self.length)}" + f" {self.content}" if full else "")
 
 class MachOCodeSignSuperblob:
 	"""
@@ -402,7 +402,7 @@ def fakesign(content):
 		new_binary.setPos(cd.filepos + cd.hash_offset)
 		new_binary.write(b"".join(new_hashes))
 	
-	print(f"Find and remove CMS digital signature blob(s)...")
+	print(f"Find and remove CMS digital signature blob(s) from super blob...")
 	
 	# Get info for new superblob
 	new_sb = bytearray() # New SB content
@@ -461,28 +461,32 @@ def main():
 	binaries = split_fat(pathlib.Path(infile).read_bytes())
 	
 	for b in binaries:
-# 		p = Stream(b)
-# 		b = MachO(b)
-# 		
+		p = Stream(b)
+		b = MachO(b)
+		
 # 		print(f"Patching a binary (for {b.getArchName()})...")
 # 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
 # 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
 # 		__LINKEDIT = b.getSegment("__LINKEDIT")
-# 		print(f"Code signing data at __LINKEDIT+{hex(b.cs_offset)} (length={hex(b.cs_size)})")
 # 		
+# 		# Find address in memory (if no relocations are preformed) and file
+# 		# offset of https followed by nul byte in the __cstring section.
 # 		addrOfHttps = __cstring.findAddress(b"https\x00")
 # 		offsetToHttps = __cstring.findOffset(b"https\x00")
 # 		print(f"address = {hex(addrOfHttps)}   offset = {hex(offsetToHttps)}")
 # 		
+# 		# Find offset to length of string in __cfstring section.
 # 		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
 # 		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
 # 		print(f"offset to length of string = {hex(offsetToLength)}")
 # 		
+# 		# Do the patch
 # 		p.patch(offsetToHttps, b"http\x00")
 # 		p.patch(offsetToLength, int32ToBytes(4))
-# 		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
 		
-		fakesign(b)
+		# Fakesign and write to file
+		pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
+		pathlib.Path(f"{infile}-fakesigned-{b.getArchName()}").write_bytes(fakesign(p.getContent()))
 		
 		pass
 	
