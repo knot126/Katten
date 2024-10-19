@@ -61,7 +61,7 @@ def rewards_php():
 
 @app.get("/touchpet/gamedata/getpid.php")
 def getpid_php():
-	return ""
+	return "1,2,3"
 
 @app.get("/touchpet/gamedata/petmaster.php")
 def petmaster_php():
@@ -114,7 +114,7 @@ def touchpet_index():
 		
 		case "mega":
 			# mega
-			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"/>'), mimetype="text/xml")
+			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend></friend></friends></mega>'), mimetype="text/xml")
 		
 		case "missionsmega":
 			return Response(finish_response(), mimetype="text/xml")

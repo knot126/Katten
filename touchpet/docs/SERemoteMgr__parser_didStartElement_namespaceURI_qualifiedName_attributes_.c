@@ -160,7 +160,7 @@ void SERemoteMgr::parser:didStartElement:namespaceURI:qualifiedName:attributes:
                 iVar6 = local_5c[uVar15];
                 uVar15 = uVar15 + 1;
                 uVar17 = [attributeDict objectForKey: iVar6];
-                _objc_msgSend(uVar7,"setValue:forKey:",uVar17,iVar6);
+                [uVar7 setValue: uVar17 forKey: iVar6];
                 if (uVar10 <= uVar15) break;
                 iVar6 = *local_58;
               }

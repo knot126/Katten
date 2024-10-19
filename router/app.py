@@ -22,6 +22,8 @@ SERVER_MAP = {
 	"app.plusplus.com": "localhost:5100",
 	"dogs2.ngmoco.com": "localhost:5200",
 	"cats.ngmoco.com": "localhost:5200",
+	"ax.init.itunes.apple.com": "localhost:5200",
+	"phobos.apple.com": "localhost:5200",
 }
 
 @app.endpoint("route")
