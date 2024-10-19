@@ -269,7 +269,6 @@ class MachO:
 		self._parseCDHashData(f)
 	
 	def _parseCDHashData(self, f):
-		f.push()
 		f.setPos(self.cs_offset)
 		f.setEndian('big')
 		
@@ -292,7 +291,6 @@ class MachO:
 				f.pop()
 		
 		f.setEndian('little')
-		f.pop()
 	
 	def getSegment(self, name):
 		for s in self.segments:
@@ -316,8 +314,9 @@ def recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
 	pagesize = 2 ** pagesize
 	hashes = []
 	
-	for i in range((limit - 1) // pagesize):
+	for i in range(limit // pagesize):
 		data = binary_contents[pagesize * i:pagesize * (i + 1)]
+		
 		match algorithm:
 			case 1:
 				hashes.append(sha1(data))
@@ -386,6 +385,9 @@ def main():
 		for cd in b.code_dirs:
 			print("recompute hashes...")
 			new_hashes = recompute_hashes(p.getContent(), cd.code_limit, cd.page_size, cd.hash_type)
+			
+			if (len(new_hashes) != cd.num_code_slots):
+				print(f"Warning: codedir hash array lengths are not equal ({len(new_hashes)} != {cd.num_code_slots})")
 			
 			for i in range(len(new_hashes)):
 				if (new_hashes[i] != cd.slots[cd.num_special_slots + i]):
