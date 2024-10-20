@@ -4,6 +4,8 @@ import pathlib
 import sys
 import json
 import hashlib
+import argparse
+import subprocess
 
 def sha1(b):
 	return hashlib.sha1(b).digest()
@@ -364,6 +366,9 @@ class MachO:
 		except:
 			return f"{self.cpu_type}_{self.cpu_subtype}"
 
+def int32ToBytes(value, endian='little'):
+	return value.to_bytes(4, endian)
+
 def fakesign_recompute_hashes(binary_contents, limit, pagesize=12, algorithm=1):
 	"""
 	Recompute the non-special CDHashes given the binary's data and the number of
@@ -468,12 +473,24 @@ def split_fat(content):
 	
 	return binaries
 
-def int32ToBytes(value, endian='little'):
-	return value.to_bytes(4, endian)
+def invoke_ldid(ldid_path, binary):
+	try:
+		ret = subprocess.run([ldid_path, '-s', binary]).returncode
+	except FileNotFoundError:
+		print("Error: ldid was not found!")
+		return
+	
+	if ret:
+		print(f"Error: ldid exited with status code {ret}")
 
 def main():
-	infile = sys.argv[1]
-	binaries = split_fat(pathlib.Path(infile).read_bytes())
+	args = argparse.ArgumentParser(prog="nohttpspatch", description="Intellegently patches out the use of HTTPS for most ngmoco games")
+	args.add_argument("file", help="Name of the file to create patched variants of")
+	args.add_argument("--ldid", action="store_true", help="Use ldid instead of the built-in fake signer. If the patcher does not fail but the app crashes after patching, using ldid may help.")
+	args.add_argument("--ldid-path", metavar="path", required=False, default="ldid", help="Path to the ldid binary. If not specified, ldid is found from the path.")
+	args = args.parse_args()
+	
+	binaries = split_fat(pathlib.Path(args.file).read_bytes())
 	
 	for b in binaries:
 		p = Stream(b)
@@ -482,7 +499,6 @@ def main():
 		print(f"Patching a binary (for {b.getArchName()})...")
 		__cstring = b.getSegment("__TEXT").getSection("__cstring")
 		__cfstring = b.getSegment("__DATA").getSection("__cfstring")
-		__LINKEDIT = b.getSegment("__LINKEDIT")
 		
 		# Find address in memory (if no relocations are preformed) and file
 		# offset of https followed by nul byte in the __cstring section.
@@ -500,8 +516,12 @@ def main():
 		p.patch(offsetToLength, int32ToBytes(4))
 		
 		# Fakesign and write to file
-		# pathlib.Path(f"{infile}-patched-{b.getArchName()}").write_bytes(p.getContent())
-		pathlib.Path(f"{infile}-fakesigned-{b.getArchName()}").write_bytes(fakesign(p.getContent()))
+		if args.ldid:
+			path = f"{args.file}-patched-{b.getArchName()}"
+			pathlib.Path(path).write_bytes(p.getContent())
+			invoke_ldid(args.ldid_path, path)
+		else:
+			pathlib.Path(f"{args.file}-fakesigned-{b.getArchName()}").write_bytes(fakesign(p.getContent()))
 		
 		pass
 	
