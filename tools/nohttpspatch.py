@@ -6,6 +6,7 @@ import json
 import hashlib
 import argparse
 import subprocess
+import os
 
 def sha1(b):
 	return hashlib.sha1(b).digest()
@@ -516,12 +517,16 @@ def main():
 		p.patch(offsetToLength, int32ToBytes(4))
 		
 		# Fakesign and write to file
+		path = f"{args.file}-patched-{b.getArchName()}"
+		
 		if args.ldid:
-			path = f"{args.file}-patched-{b.getArchName()}"
 			pathlib.Path(path).write_bytes(p.getContent())
 			invoke_ldid(args.ldid_path, path)
 		else:
-			pathlib.Path(f"{args.file}-fakesigned-{b.getArchName()}").write_bytes(fakesign(p.getContent()))
+			pathlib.Path(path).write_bytes(fakesign(p.getContent()))
+		
+		# Setting permissions makes file transfers with scp easier
+		os.chmod(path, 0o775)
 		
 		pass
 	
