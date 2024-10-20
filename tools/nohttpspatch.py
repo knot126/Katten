@@ -147,6 +147,21 @@ class MachOSection:
 		
 		return r
 	
+	def findAll(self, content):
+		matches = []
+		current = 0
+		
+		while True:
+			r = self.content.find(content, current)
+			
+			if r == -1:
+				break
+			else:
+				matches.append(r)
+				current = r + len(content)
+		
+		return matches
+	
 	def findAddress(self, content):
 		"""
 		Find address of the first occurance of content
@@ -249,7 +264,7 @@ class MachOCodeSignBlob:
 		self.content = f.read(self.length - 8)
 	
 	def printInfo(self, full=False):
-		print(f"  - {hex(self.magic)} {hex(self.length)}" + f" {self.content}" if full else "")
+		print(f"  - {hex(self.magic)} {hex(self.length)}" + (f" {self.content}" if full else ""))
 
 class MachOCodeSignSuperblob:
 	"""
@@ -270,19 +285,19 @@ class MachOCodeSignSuperblob:
 		self.length = f.readUInt32()
 		self.count = f.readUInt32()
 		
-		print(f"magic={hex(self.magic)} length={hex(self.length)} count={hex(self.count)}")
+		# print(f"magic={hex(self.magic)} length={hex(self.length)} count={hex(self.count)}")
 		
 		for i in range(self.count):
 			type = f.readUInt32()
 			blob_offset = f.readUInt32()
 			blob_filepos = self.offset + blob_offset
-			print(f"type={type} offset-from-file={blob_filepos}")
+			# print(f"type={type} offset-from-file={blob_filepos}")
 			
 			# Add raw blob data
 			f.push()
 			f.setPos(blob_filepos)
 			self.blobs.append(MachOCodeSignBlob(f, type, blob_offset))
-			self.blobs[-1].printInfo()
+			# self.blobs[-1].printInfo()
 			f.pop()
 			
 			# Code directory blobs also get structured data
@@ -393,16 +408,16 @@ def fakesign(content):
 		if (len(new_hashes) != cd.num_code_slots):
 			print(f"Warning: codedir hash array lengths are not equal ({len(new_hashes)} != {cd.num_code_slots}) !!")
 		
-		for i in range(len(new_hashes)):
-			if (new_hashes[i] != cd.slots[cd.num_special_slots + i]):
-				print(f"Different hash at index {i}: {new_hashes[i]} != {cd.slots[cd.num_special_slots + i]}")
+		# for i in range(len(new_hashes)):
+		# 	if (new_hashes[i] != cd.slots[cd.num_special_slots + i]):
+		# 		print(f"Different hash at index {i}: {new_hashes[i]} != {cd.slots[cd.num_special_slots + i]}")
 		
 		# Go to where the hashes are and write them
 		print("Write recomputed hashes")
 		new_binary.setPos(cd.filepos + cd.hash_offset)
 		new_binary.write(b"".join(new_hashes))
 	
-	print(f"Find and remove CMS digital signature blob(s) from super blob...")
+	print(f"Find and remove CMS-encoded digital signature blob(s) from super blob...")
 	
 	# Get info for new superblob
 	new_sb = bytearray() # New SB content
@@ -417,7 +432,7 @@ def fakesign(content):
 	# Add new super blob header
 	new_sb = b"\xfa\xde\x0c\xc0" + int32ToBytes(binary_info.cs_superblob.length, 'big') + int32ToBytes(new_sb_count, 'big') + new_sb
 	
-	print(f"!! New super blob: {new_sb}")
+	# print(f"!! New super blob: {new_sb}")
 	
 	# Seek to start of blob indexes and write it
 	new_binary.setPos(binary_info.cs_superblob.offset)
@@ -473,12 +488,12 @@ def main():
 		# offset of https followed by nul byte in the __cstring section.
 		addrOfHttps = __cstring.findAddress(b"https\x00")
 		offsetToHttps = __cstring.findOffset(b"https\x00")
-		print(f"address = {hex(addrOfHttps)}   offset = {hex(offsetToHttps)}")
+		print(f"Https string: load address = {hex(addrOfHttps)}, offset in file = {hex(offsetToHttps)}")
 		
 		# Find offset to length of string in __cfstring section.
 		bytesToUpdate = int32ToBytes(addrOfHttps) + int32ToBytes(5)
-		offsetToLength = __cfstring.findAddress(bytesToUpdate) + 4
-		print(f"offset to length of string = {hex(offsetToLength)}")
+		offsetToLength = __cfstring.findOffset(bytesToUpdate) + 4
+		print(f"cfstring structure should be near {hex(offsetToLength)} in file")
 		
 		# Do the patch
 		p.patch(offsetToHttps, b"http\x00")
