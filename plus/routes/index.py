@@ -27,7 +27,7 @@ def get_games(version, appname):
 				"achievements_count": 0,
 				"id": 1,
 				"master_product_id": 1,
-				"icon_url": f"http://{request.host}" + url_for("static", filename = "0.png"),
+				"icon_url": f"http://{request.host}/static/badges/0.png",
 				"app_store_url": "",
 				"feed_url": "",
 				"catalog_url": "",
@@ -39,22 +39,32 @@ def get_games(version, appname):
 		],
 	}
 
-# Badges
-@app.get("/<int:version>/<appname>/badges")
-def badges(version, appname):
+def list_badges():
+	# TODO: Allow to organise badges into groups
+	badge_files = sorted(os.listdir("static/badges"))
+	badges = []
+	
+	for f in badge_files:
+		badges.append({"icon_url": f"http://{request.host}/static/badges/{f}"})
+	
 	return {
 		"success": True,
-		# "error": 0,
 		"list": [
 			{
 				"name": "General",
-				"badges": [
-					{ "icon_url": f"http://{request.host}" + url_for("static", filename = "0.png") },
-					{ "icon_url": f"http://{request.host}" + url_for("static", filename = "1.png") },
-				],
+				"badges": badges,
 			}
 		],
 	}
+
+# Badges
+@app.get("/<int:version>/<appname>/badges")
+def badges(version, appname):
+	return list_badges()
+
+@app.get("/<int:version>/<appname>/users/<int:user_id>/badges")
+def user_badges(version, appname, user_id):
+	return list_badges()
 
 # Users
 @app.post("/<int:version>/<appname>/users")
@@ -69,9 +79,6 @@ def users_register(version, appname):
 	result = User.register(user_info)
 	
 	return make_login_response(result.user, result.session)
-	# return {
-	# 	"error_msg": "User creation not supported"
-	# }
 
 @app.put("/<int:version>/<appname>/users/<int:user_id>")
 def users_update(version, appname, user_id):
@@ -88,7 +95,7 @@ def users_update(version, appname, user_id):
 	
 	user.save()
 	
-	return {}
+	return {"success": True}
 
 @app.get("/<int:version>/<appname>/users/<gamertag>")
 def users_lookup_by_gamertag(version, appname, gamertag):

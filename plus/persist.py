@@ -194,8 +194,7 @@ class Persistent:
 	
 	def on_load(self):
 		"""
-		Called when the object is loaded from the database. Note that this does
-		not include 
+		Called when the object is loaded from the database.
 		"""
 		
 		pass
