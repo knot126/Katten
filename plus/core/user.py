@@ -54,7 +54,6 @@ class User(Persistent):
 	
 	def on_load(self):
 		self.age_restricted = int(self.age_restricted)
-		# print(self.__dict__)
 		pass
 	
 	def get_id(self):

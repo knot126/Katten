@@ -11,11 +11,9 @@ def ping(version, appname):
 	})
 
 # Games
-@app.get("/<int:version>/<appname>/games")
-def get_games(version, appname):
+def list_games(appname):
 	return {
 		"success": True,
-		# "error": 0,
 		"games": [
 			{
 				"app_key": appname,
@@ -32,13 +30,22 @@ def get_games(version, appname):
 				"feed_url": "",
 				"catalog_url": "",
 				"description": "This is the current game.",
-				"phone_screenshot_urls": [],
-				"phone_thumbnail_urls": [],
-				"promotion_image_url": "",
+				"phone_screenshot_urls": [f"http://{request.host}/static/badges/0.png"],
+				"phone_thumbnail_urls": [f"http://{request.host}/static/badges/0.png"],
+				"promotion_image_url": f"http://{request.host}/static/badges/0.png",
 			}
 		],
 	}
 
+@app.get("/<int:version>/<appname>/games")
+def get_games(version, appname):
+	return list_games(appname)
+
+@app.get("/<int:version>/<appname>/users/<int:user_id>/games")
+def get_user_games(version, appname, user_id):
+	return list_games(appname)
+
+# Badges
 def list_badges():
 	# TODO: Allow to organise badges into groups
 	badge_files = sorted(os.listdir("static/badges"))
@@ -57,7 +64,6 @@ def list_badges():
 		],
 	}
 
-# Badges
 @app.get("/<int:version>/<appname>/badges")
 def badges(version, appname):
 	return list_badges()
