@@ -263,7 +263,7 @@ def touchpet_index():
 				pass
 		
 		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
-		return Response(finish_response(), mimetype="text/xml")
+		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 	
 	elif cmd == "clearfriends":
 		# ???
@@ -288,14 +288,17 @@ def touchpet_index():
 	elif cmd.startswith("add"):
 		modelName = cmd[3:]
 		print(f"Adding item of type {modelName}")
-		obj = None
+		
+		data = None
 		
 		if modelName == "inventory":
 			models[modelName].addOrUpdate(request.form)
+			data = get_player_data(playerProfile, playerId)
 		else:
-			models[modelName].add(request.form)
+			obj = models[modelName].add(request.form)
+			data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
 		
-		return Response(finish_response(), mimetype="text/xml")
+		return Response(finish_response(data), mimetype="text/xml")
 	
 	elif cmd.startswith("set") and cmd.endswith("property"):
 		modelName = cmd[3:-8]
@@ -313,7 +316,9 @@ def touchpet_index():
 			except KeyError:
 				pass
 		
-		return Response(finish_response(), mimetype="text/xml")
+		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+		
+		return Response(finish_response(data), mimetype="text/xml")
 		
 	else:
 		print(f'*** unknown cmd: {cmd} ***')

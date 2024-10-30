@@ -70,6 +70,44 @@ Where int is any integer value, string is any string and date is a date as the n
 <dataversion>(int)</dataversion> <!-- see: gDatabaseVersion -->
 ```
 
+Every post seems to require at least one object as a response otherwise the request will be requeued and sent again.
+
+## Important classes/messages
+
+### `SERemoteModel`
+
+Base class for a database model. Every subclass implements a few methods:
+
+#### `acceptableClasses`
+
+Lowercase names of classes this model will accept being loaded to/from in the sigular (as in the term used when referring to English). For example, "pet" or "player".
+
+#### `acceptablePluralClasses`
+
+Similar to `acceptableClasses`, but the strings are the plural versions of those in the acceptable classes. For example, "pets" or "players".
+
+#### `initialize`
+
+Initialises things like the singular and plural class name list.
+
+#### `sendingFeilds`
+
+Return with a list of feilds to use in the POST request aside from the standard ones like playerID.
+
+#### `typeName`
+
+The name of the type in pascal case. For example, "Pet" or "Player".
+
+### `SERemoteMgr`
+
+This class implements the HTTP posting, XML parsing and coverting XML responses into objects.
+
+### `SEStatUpdateQueue`
+
+#### `-[SEStatUpdateQueue updateQueue]`
+
+Updates the stat update queue.
+
 ## Startup
 
 `-[SELoginMgr backgroundFetch]` does the initial `setplayerproperty` for cat=10 prop=0. if there is a player object in the response then its values are used, otherwise they are initialised to defaults
