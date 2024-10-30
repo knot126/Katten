@@ -61,7 +61,7 @@ def rewards_php():
 
 @app.get("/touchpet/gamedata/getpid.php")
 def getpid_php():
-	return "1,2,3"
+	return ""
 
 @app.get("/touchpet/gamedata/petmaster.php")
 def petmaster_php():
@@ -69,16 +69,24 @@ def petmaster_php():
 
 def validate_session(token, player_id):
 	result = util.post(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/session", {"auth_token": token})
-	return result["success"]
+	return result["profile"] if result["success"] else None
 
 def get_player_data(player_id):
-	data = "<player>"
+	data = f"<player><playerID>{player_id}</playerID>"
 	
 	for prop in Property.getAll("player", player_id):
 		data += f'<property category="{prop.category_id}" id="{prop.property_id}">{prop.value}</property>'
 	
 	data += "</player>"
 	return data
+
+def make_friend_from_profile(profile):
+	s = "<friend>"
+	
+	for k, v in profile.items():
+		s += f"<{k}>{v}</{k}>"
+	
+	return s + "</friend>"
 
 def finish_response(data=""):
 	return f"<results><servertime>{util.time()}</servertime>{data}</results>"
@@ -90,7 +98,8 @@ def touchpet_index():
 	playerId = int(request.form["playerID"])
 	sessionToken = request.form["sessionToken"]
 	
-	if (not validate_session(sessionToken, playerId)):
+	playerProfile = validate_session(sessionToken, playerId)
+	if (not playerProfile):
 		return ERROR_NOT_AUTHENTICATED
 	
 	match cmd:
@@ -110,11 +119,11 @@ def touchpet_index():
 		
 		case "pets":
 			# for testing
-			return Response(finish_response("<pets></pets>"), mimetype="text/xml")
+			return Response(finish_response("<pets><pet><petname>Jens</petname></pet></pets>"), mimetype="text/xml")
 		
 		case "mega":
 			# mega
-			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend></friend></friends></mega>'), mimetype="text/xml")
+			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends></friends></mega>'), mimetype="text/xml")
 		
 		case "missionsmega":
 			return Response(finish_response(), mimetype="text/xml")

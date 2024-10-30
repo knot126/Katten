@@ -54,9 +54,13 @@ Any plural of a class name (`className + "s"`) or the string `"results"` are ign
 		<playdate ...>...</playdate>
 		<inventory inventoryID="(int)" known="(bool)" rewarded="(bool)" owned="(bool)" gifted="(bool)" timeacquired="(int)" quantity="(int)" decaystate="(int)" fromdogID="[int]" todogID="[int]" timegifted="[int]" isnew="[bool]">...</inventory>
 		<loot ...>...</loot>
+		<!-- an object can have any number of feilds -->
+		<feild-name>(int|date|string)</feild-name>
 	</pet>
 </pets>
 ```
+
+Where int is any integer value, string is any string and date is a date as the number of seconds since 1970.
 
 ```xml
 <servertime>(int)</servertime>
