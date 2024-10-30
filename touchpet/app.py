@@ -44,6 +44,18 @@ class Property(Persistent):
 		prop.property_id = propertyId
 		prop.value = int(value)
 		prop.save()
+	
+	@classmethod
+	def delta(self, typeName, objectId, categoryId, propertyId, amount):
+		prop = self.lookup({"type": typeName, "object_id": objectId, "category_id": categoryId, "property_id": propertyId})
+		
+		# For now, just create it as zero
+		if not prop:
+			self.set(typeName, objectId, categoryId, propertyId, amount)
+			return
+		
+		prop.value += int(amount)
+		prop.save()
 
 class Model(Persistent):
 	"""
@@ -98,6 +110,9 @@ class Model(Persistent):
 	
 	def setProperty(self, catid, propid, value):
 		Property.set(self.__class__.__name__, self._id, int(catid), int(propid), int(value))
+	
+	def deltaProperty(self, catid, propid, value):
+		Property.delta(self.__class__.__name__, self._id, int(catid), int(propid), int(value))
 	
 	def feildsAsXML(self):
 		# For <feild1>value1</feild1><feild2>value2</feild2>...
@@ -167,6 +182,7 @@ class Pet(Model):
 		"petname": str,
 		"breedID": int,
 		"gender": int,
+		"ready": int,
 		"playerID": int,
 	}
 	special_id = True
@@ -244,6 +260,7 @@ def touchpet_index():
 	if cmd == "player":
 		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 	
+	# todo: make player a model, even if not a full one
 	elif cmd == "setplayerproperty":
 		print("Set player property")
 		try:
@@ -265,6 +282,28 @@ def touchpet_index():
 		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
 		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 	
+	elif cmd == "deltaplayerproperty":
+		# TODO I know DRY but this is just a hack for now anyway...
+		print("Delta player property")
+		try:
+			categoryId = int(request.form["categoryID"])
+			propertyId = int(request.form["propertyID"])
+			Property.delta("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
+		except KeyError:
+			try:
+				i = 0
+				
+				while True:
+					categoryId = int(request.form[f"categoryID[{i}]"])
+					propertyId = int(request.form[f"propertyID[{i}]"])
+					Property.delta("player", playerId, categoryId, propertyId, int(request.form[f"propertyvalue[{i}]"]))
+					i += 1
+			except KeyError:
+				pass
+		
+		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
+		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+	
 	elif cmd == "clearfriends":
 		# ???
 		return Response(finish_response(), mimetype="text/xml")
@@ -274,6 +313,14 @@ def touchpet_index():
 		# return Response(finish_response("<pets><pet><petID>5</petID><petname>Jens</petname></pet></pets>"), mimetype="text/xml")
 		print("Get pets")
 		return Response(finish_response(get_player_pets(int(request.form["selectID"]))), mimetype="text/xml")
+	
+	elif cmd == "setpetready":
+		print("Set pet ready")
+		pet = Pet.lookup({"_id": int(request.form["petID"])})
+		pet.ready = int(request.form["ready"])
+		pet.save()
+		
+		return Response(finish_response(pet.toXMLWithProperties()), mimetype="text/xml")
 	
 	elif cmd == "mega":
 		# mega
@@ -319,7 +366,28 @@ def touchpet_index():
 		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
 		
 		return Response(finish_response(data), mimetype="text/xml")
+	
+	elif cmd.startswith("delta") and cmd.endswith("property"):
+		# TODO DRY, again
+		modelName = cmd[5:-8]
+		print(f"Delta {modelName} property")
+		obj = models[modelName](int(request.form[f"{modelName}ID"]))
 		
+		if "propertyvalue" in request.form:
+			obj.deltaProperty(request.form["categoryID"], request.form["propertyID"], request.form["propertyvalue"])
+		else:
+			try:
+				i = 0
+				while True:
+					obj.deltaProperty(request.form[f"categoryID[{i}]"], request.form[f"propertyID[{i}]"], request.form[f"propertyvalue[{i}]"])
+					i += 1
+			except KeyError:
+				pass
+		
+		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+		
+		return Response(finish_response(data), mimetype="text/xml")
+	
 	else:
 		print(f'*** unknown cmd: {cmd} ***')
 		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/xml")
