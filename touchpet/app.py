@@ -110,9 +110,22 @@ def touchpet_index():
 			return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 		
 		case "setplayerproperty":
-			categoryId = int(request.form["categoryID"])
-			propertyId = int(request.form["propertyID"])
-			Property.set("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
+			try:
+				categoryId = int(request.form["categoryID"])
+				propertyId = int(request.form["propertyID"])
+				Property.set("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
+			except KeyError:
+				try:
+					i = 0
+					
+					while True:
+						categoryId = int(request.form[f"categoryID[{i}]"])
+						propertyId = int(request.form[f"propertyID[{i}]"])
+						Property.set("player", playerId, categoryId, propertyId, int(request.form[f"propertyvalue[{i}]"]))
+						i += 1
+				except KeyError:
+					pass
+			
 			# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
 			return Response(finish_response(), mimetype="text/xml")
 		
