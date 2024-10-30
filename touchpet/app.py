@@ -71,8 +71,11 @@ def validate_session(token, player_id):
 	result = util.post(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/session", {"auth_token": token})
 	return result["profile"] if result["success"] else None
 
-def get_player_data(player_id):
-	data = f"<player><playerID>{player_id}</playerID>"
+def get_player_data(plus_profile, player_id):
+	data = "<player>"
+	
+	data += f"<playerID>{player_id}</playerID>"
+	data += f"<username>{plus_profile['gamertag']}</username>"
 	
 	for prop in Property.getAll("player", player_id):
 		data += f'<property category="{prop.category_id}" id="{prop.property_id}">{prop.value}</property>'
@@ -104,7 +107,7 @@ def touchpet_index():
 	
 	match cmd:
 		case "player":
-			return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
+			return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 		
 		case "setplayerproperty":
 			categoryId = int(request.form["categoryID"])
@@ -123,7 +126,7 @@ def touchpet_index():
 		
 		case "mega":
 			# mega
-			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends></friends></mega>'), mimetype="text/xml")
+			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend><username>knot2</username></friend></friends></mega>'), mimetype="text/xml")
 		
 		case "missionsmega":
 			return Response(finish_response(), mimetype="text/xml")
