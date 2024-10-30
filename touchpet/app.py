@@ -45,6 +45,137 @@ class Property(Persistent):
 		prop.value = int(value)
 		prop.save()
 
+class Model(Persistent):
+	"""
+	Implements a more structured model for most things in TPC
+	"""
+	
+	special_id = False
+	
+	def on_init(self):
+		struct = self.__class__.struct
+		
+		for feildname, feildtype in struct.items():
+			setattr(self, feildname, feildtype())
+	
+	def on_load(self):
+		struct = self.__class__.struct
+		
+		# Check for new or updated feilds
+		for feildname, feildtype in struct.items():
+			if hasattr(self, feildname):
+				if (type(getattr(self, feildname)) != feildtype):
+					setattr(self, feildname, feildtype())
+			else:
+				setattr(self, feildname, feildtype())
+		
+		# Delete unused feilds
+		for feildname, feildvalue in self.__dict__.items():
+			if not feildname.startswith("_") and feildname not in struct:
+				delattr(self, feildname)
+	
+	@classmethod
+	def loadFromValues(self, obj, values):
+		"""
+		Load values into this object
+		"""
+		
+		for key, value in values.items():
+			if (key in self.struct):
+				setattr(obj, key, self.struct[key](value))
+	
+	@classmethod
+	def add(self, initialValues):
+		"""
+		Add a new object of this type with initialValues
+		"""
+		
+		obj = self()
+		self.loadFromValues(obj, initialValues)
+		obj.save()
+		
+		return obj
+	
+	def setProperty(self, catid, propid, value):
+		Property.set(self.__class__.__name__, self._id, int(catid), int(propid), int(value))
+	
+	def feildsAsXML(self):
+		# For <feild1>value1</feild1><feild2>value2</feild2>...
+		lower = self.__class__.__name__.lower()
+		xml = f"<{lower}ID>{self._id}</{lower}ID>" if self.__class__.special_id else ""
+		
+		for key, value in self.__dict__.items():
+			if not key.startswith("_"):
+				xml += f"<{key}>{value}</{key}>"
+		
+		return xml
+	
+	def feildsAsInlineXML(self):
+		# For <classname feild1="value1" feild2="value2" />
+		lower = self.__class__.__name__.lower()
+		xml = [f'{lower}ID="{self._id}"'] if self.__class__.special_id else []
+		
+		for key, value in self.__dict__.items():
+			if not key.startswith("_"):
+				xml.append(f'{key}="{value}"')
+		
+		return f"<{lower} " + " ".join(xml) + "/>"
+	
+	def propertiesAsXML(self):
+		data = ""
+		
+		for prop in Property.getAll(self.__class__.__name__, self._id):
+			data += f'<property category="{prop.category_id}" id="{prop.property_id}">{prop.value}</property>'
+		
+		return data
+	
+	def toXMLWithProperties(self):
+		lower = self.__class__.__name__.lower()
+		
+		return f"<{lower}>{self.propertiesAsXML()}{self.feildsAsXML()}</{lower}>"
+
+class Player(Model):
+	struct = {}
+
+class Inventory(Model):
+	struct = {
+		"inventoryID": int,
+		"known": int,
+		"rewarded": int,
+		"owned": int,
+		"gifted": int,
+		"quantity": int,
+		"fromdogID": int,
+		"todogID": int,
+		"timegifted": int,
+		"isnew": int,
+		"playerID": int,
+	}
+	
+	@classmethod
+	def addOrUpdate(self, newValues):
+		inv = self.lookup({"inventoryID": int(newValues["inventoryID"]), "playerID": int(newValues["playerID"])})
+		
+		if inv:
+			inv.__class__.loadFromValues(inv, newValues)
+			inv.save()
+		else:
+			self.add(newValues)
+
+class Pet(Model):
+	struct = {
+		"petname": str,
+		"breedID": int,
+		"gender": int,
+		"playerID": int,
+	}
+	special_id = True
+
+models = {
+	"inventory": Inventory,
+	"pet": Pet,
+}
+
 app = Flask(__name__)
 
 @app.get("/touchpet/gamedata/get_dlc.php")
@@ -80,16 +211,19 @@ def get_player_data(plus_profile, player_id):
 	for prop in Property.getAll("player", player_id):
 		data += f'<property category="{prop.category_id}" id="{prop.property_id}">{prop.value}</property>'
 	
+	for inv in Inventory.lookup_many({"playerID": player_id}):
+		data += inv.feildsAsInlineXML()
+	
 	data += "</player>"
 	return data
 
-def make_friend_from_profile(profile):
-	s = "<friend>"
+def get_player_pets(select_id):
+	data = "<pets>"
 	
-	for k, v in profile.items():
-		s += f"<{k}>{v}</{k}>"
+	for pet in Pet.lookup_many({"playerID": select_id}):
+		data += pet.toXMLWithProperties()
 	
-	return s + "</friend>"
+	return data + "</pets>"
 
 def finish_response(data=""):
 	return f"<results><servertime>{util.time()}</servertime>{data}</results>"
@@ -105,47 +239,82 @@ def touchpet_index():
 	if (not playerProfile):
 		return ERROR_NOT_AUTHENTICATED
 	
-	match cmd:
-		case "player":
-			return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
-		
-		case "setplayerproperty":
+	# Players are a bit different and not (yet) explicitly stored in the
+	# touch pets database
+	if cmd == "player":
+		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+	
+	elif cmd == "setplayerproperty":
+		print("Set player property")
+		try:
+			categoryId = int(request.form["categoryID"])
+			propertyId = int(request.form["propertyID"])
+			Property.set("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
+		except KeyError:
 			try:
-				categoryId = int(request.form["categoryID"])
-				propertyId = int(request.form["propertyID"])
-				Property.set("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
+				i = 0
+				
+				while True:
+					categoryId = int(request.form[f"categoryID[{i}]"])
+					propertyId = int(request.form[f"propertyID[{i}]"])
+					Property.set("player", playerId, categoryId, propertyId, int(request.form[f"propertyvalue[{i}]"]))
+					i += 1
 			except KeyError:
-				try:
-					i = 0
-					
-					while True:
-						categoryId = int(request.form[f"categoryID[{i}]"])
-						propertyId = int(request.form[f"propertyID[{i}]"])
-						Property.set("player", playerId, categoryId, propertyId, int(request.form[f"propertyvalue[{i}]"]))
-						i += 1
-				except KeyError:
-					pass
-			
-			# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
-			return Response(finish_response(), mimetype="text/xml")
+				pass
 		
-		case "clearfriends":
-			# ???
-			return Response(finish_response(), mimetype="text/xml")
+		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
+		return Response(finish_response(), mimetype="text/xml")
+	
+	elif cmd == "clearfriends":
+		# ???
+		return Response(finish_response(), mimetype="text/xml")
+	
+	elif cmd == "pets":
+		# for testing
+		# return Response(finish_response("<pets><pet><petID>5</petID><petname>Jens</petname></pet></pets>"), mimetype="text/xml")
+		print("Get pets")
+		return Response(finish_response(get_player_pets(int(request.form["selectID"]))), mimetype="text/xml")
+	
+	elif cmd == "mega":
+		# mega
+		return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend><username>knot2</username></friend></friends></mega>'), mimetype="text/xml")
+	
+	elif cmd == "missionsmega":
+		return Response(finish_response(), mimetype="text/xml")
+	
+	elif cmd == "playerevents":
+		return Response(finish_response(), mimetype="text/xml")
+	
+	elif cmd.startswith("add"):
+		modelName = cmd[3:]
+		print(f"Adding item of type {modelName}")
+		obj = None
 		
-		case "pets":
-			# for testing
-			return Response(finish_response("<pets><pet><petname>Jens</petname></pet></pets>"), mimetype="text/xml")
+		if modelName == "inventory":
+			models[modelName].addOrUpdate(request.form)
+		else:
+			models[modelName].add(request.form)
 		
-		case "mega":
-			# mega
-			return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend><username>knot2</username></friend></friends></mega>'), mimetype="text/xml")
+		return Response(finish_response(), mimetype="text/xml")
+	
+	elif cmd.startswith("set") and cmd.endswith("property"):
+		modelName = cmd[3:-8]
+		print(f"Setting property for type {modelName}")
+		obj = models[modelName](int(request.form[f"{modelName}ID"]))
 		
-		case "missionsmega":
-			return Response(finish_response(), mimetype="text/xml")
+		if "propertyvalue" in request.form:
+			obj.setProperty(request.form["categoryID"], request.form["propertyID"], request.form["propertyvalue"])
+		else:
+			try:
+				i = 0
+				while True:
+					obj.setProperty(request.form[f"categoryID[{i}]"], request.form[f"propertyID[{i}]"], request.form[f"propertyvalue[{i}]"])
+					i += 1
+			except KeyError:
+				pass
 		
-		case "playerevents":
-			return Response(finish_response(), mimetype="text/xml")
+		return Response(finish_response(), mimetype="text/xml")
 		
-		case _:
-			return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/xml")
+	else:
+		print(f'*** unknown cmd: {cmd} ***')
+		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/xml")
