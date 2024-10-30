@@ -108,6 +108,17 @@ class Model(Persistent):
 		
 		return obj
 	
+	@classmethod
+	def asXMLForAllMatching(self, filter):
+		lower = self.__name__.lower()
+		xml = f"<{lower}s>"
+		objs = self.lookup_many(filter)
+		
+		for obj in objs:
+			xml += obj.toXMLWithProperties()
+		
+		return xml + f"</{lower}s>"
+	
 	def setProperty(self, catid, propid, value):
 		Property.set(self.__class__.__name__, self._id, int(catid), int(propid), int(value))
 	
@@ -160,6 +171,7 @@ class Inventory(Model):
 		"owned": int,
 		"gifted": int,
 		"quantity": int,
+		"decaystate": int,
 		"fromdogID": int,
 		"todogID": int,
 		"timegifted": int,
@@ -176,6 +188,10 @@ class Inventory(Model):
 			inv.save()
 		else:
 			self.add(newValues)
+	
+	def decay(self, amount):
+		self.decaystate += int(amount)
+		self.save()
 
 class Pet(Model):
 	struct = {
@@ -187,9 +203,24 @@ class Pet(Model):
 	}
 	special_id = True
 
+class Event(Model):
+	struct = {
+		"typeID": int,
+		"created": int,
+		"primarypetID": int,
+		"primaryplayerID": int,
+		"primaryvalue": int,
+		"secondarypetID": int,
+		"secondaryplayerID": int,
+		"secondaryvalue": int,
+		"urlencoded_data": str,
+	}
+	special_id = True
+
 models = {
 	"inventory": Inventory,
 	"pet": Pet,
+	"event": Event,
 }
 
 app = Flask(__name__)
@@ -304,6 +335,15 @@ def touchpet_index():
 		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
 		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 	
+	elif cmd == "decayinventory":
+		print("Decay inventory")
+		item = Inventory.lookup({"playerID": playerId, "inventoryID": int(request.form["inventoryID"])})
+		
+		if (item):
+			item.decay(request.form["decayamount"])
+		
+		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+	
 	elif cmd == "clearfriends":
 		# ???
 		return Response(finish_response(), mimetype="text/xml")
@@ -330,7 +370,9 @@ def touchpet_index():
 		return Response(finish_response(), mimetype="text/xml")
 	
 	elif cmd == "playerevents":
-		return Response(finish_response(), mimetype="text/xml")
+		# HACK: We probably need to consider the primaryplayerID and
+		# secondaryplayerID
+		return Response(finish_response(Event.asXMLForAllMatching({"playerID": playerId})), mimetype="text/xml")
 	
 	elif cmd.startswith("add"):
 		modelName = cmd[3:]
@@ -391,3 +433,7 @@ def touchpet_index():
 	else:
 		print(f'*** unknown cmd: {cmd} ***')
 		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/xml")
+
+# Misc todos:
+# - should really store uuid's and check against them so we don't end up in a
+# situation where we process an event twice
