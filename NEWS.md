@@ -1,8 +1,19 @@
 # News, project status and changelog
 
-## 2024-10-13
+## 2024-10-31
 
-I have tried to look into the touchpets database model more and I believe I am starting to understand it.
+**Katten can now host a basic game of Touch Pets: Cats!** While there is still a LOT of work to do (e.g. anything multiplayer related including Plus+ related stuff, player events, fixing furniture loot, making Katten easier to setup, etc) you can play the game now and have basic progress (like level, coins, inventory and of course your pets) saved.
+
+I plan to write some documentation on how the Touch Pets server works, though at the moment it's sort of hard to describe. :P
+
+It's worth noting that most of the progress was done in the past two days, since I both figured out:
+
+1. how to run Touch Pets in a debugger (I just used GDB from the Cydia repos to jankily lanuch the app - debugserver was always fucking shit up and I never got it to work) leading me to find where exactly the game was crashing\* when trying to load the "Town" view (called the neighbourhood in the game), and
+2. how the majority\*\* of the data was being loaded into objects (in short: in the XML parser it uses objective-c's property system to convert the running string into the proper type and then set it to the value of the current element name. I had initally just thought this was decompiler noise since the decompilation wasn't great. I was wrong :P).
+
+\* To be specific the game was crashing when trying to do something related to getting profile pictures. The player's username was being set to NIL since I didn't provide (because I didn't know how!). It was trying to use the username as a dictionary key which throws an exception since it's NIL - providing the username in the player data actually made it work without doing anything else!
+
+\*\* There are also some special cases where data is represented differently in the response XML. For example, inventory items use the attributes of an `inventory` tag in the `player` tag.
 
 ## 2024-07-24
 
