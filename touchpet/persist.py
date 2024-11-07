@@ -38,6 +38,7 @@ class Persistent:
 		"""
 		
 		if id:
+			self._id = id
 			self.load(id)
 		else:
 			self._id = self.get_class().make_id()

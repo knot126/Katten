@@ -16,7 +16,7 @@ class Property(Persistent):
 	version = 1
 	
 	def on_init(self):
-		self.type = "object"
+		self.type = "Object"
 		self.object_id = 0
 		self.category_id = 0
 		self.property_id = 0
@@ -218,6 +218,7 @@ class Event(Model):
 	special_id = True
 
 models = {
+	"player": Player,
 	"inventory": Inventory,
 	"pet": Pet,
 	"event": Event,
@@ -255,8 +256,7 @@ def get_player_data(plus_profile, player_id):
 	data += f"<playerID>{player_id}</playerID>"
 	data += f"<username>{plus_profile['gamertag']}</username>"
 	
-	for prop in Property.getAll("player", player_id):
-		data += f'<property category="{prop.category_id}" id="{prop.property_id}">{prop.value}</property>'
+	data += Player(int(player_id)).propertiesAsXML()
 	
 	for inv in Inventory.lookup_many({"playerID": player_id}):
 		data += inv.feildsAsInlineXML()
@@ -289,50 +289,6 @@ def touchpet_index():
 	# Players are a bit different and not (yet) explicitly stored in the
 	# touch pets database
 	if cmd == "player":
-		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
-	
-	# todo: make player a model, even if not a full one
-	elif cmd == "setplayerproperty":
-		print("Set player property")
-		try:
-			categoryId = int(request.form["categoryID"])
-			propertyId = int(request.form["propertyID"])
-			Property.set("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
-		except KeyError:
-			try:
-				i = 0
-				
-				while True:
-					categoryId = int(request.form[f"categoryID[{i}]"])
-					propertyId = int(request.form[f"propertyID[{i}]"])
-					Property.set("player", playerId, categoryId, propertyId, int(request.form[f"propertyvalue[{i}]"]))
-					i += 1
-			except KeyError:
-				pass
-		
-		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
-		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
-	
-	elif cmd == "deltaplayerproperty":
-		# TODO I know DRY but this is just a hack for now anyway...
-		print("Delta player property")
-		try:
-			categoryId = int(request.form["categoryID"])
-			propertyId = int(request.form["propertyID"])
-			Property.delta("player", playerId, categoryId, propertyId, int(request.form["propertyvalue"]))
-		except KeyError:
-			try:
-				i = 0
-				
-				while True:
-					categoryId = int(request.form[f"categoryID[{i}]"])
-					propertyId = int(request.form[f"propertyID[{i}]"])
-					Property.delta("player", playerId, categoryId, propertyId, int(request.form[f"propertyvalue[{i}]"]))
-					i += 1
-			except KeyError:
-				pass
-		
-		# return Response(finish_response(get_player_data(playerId)), mimetype="text/xml")
 		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 	
 	elif cmd == "decayinventory":
@@ -433,6 +389,10 @@ def touchpet_index():
 	else:
 		print(f'*** unknown cmd: {cmd} ***')
 		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/xml")
+
+@app.get("/")
+def index():
+	return "Katten Touch Pets server"
 
 # Misc todos:
 # - should really store uuid's and check against them so we don't end up in a
