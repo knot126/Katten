@@ -158,7 +158,7 @@ class Model(Persistent):
 	def toXMLWithProperties(self):
 		lower = self.__class__.__name__.lower()
 		
-		return f"<{lower}>{self.propertiesAsXML()}{self.feildsAsXML()}</{lower}>"
+		return f"<{lower}>{self.feildsAsXML()}{self.propertiesAsXML()}</{lower}>"
 
 class Player(Model):
 	struct = {}
@@ -330,6 +330,16 @@ def touchpet_index():
 		# secondaryplayerID
 		return Response(finish_response(Event.asXMLForAllMatching({"playerID": playerId})), mimetype="text/xml")
 	
+	elif cmd == "queuerecharge":
+		# seems related to push notifications, which we can ignore and just send
+		# back a player object (which is the acceptable class for this request)
+		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+	
+	elif cmd == "cancelrecharge":
+		# seems related to push notifications, which we can ignore and just send
+		# back a player object (which is the acceptable class for this request)
+		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+	
 	elif cmd.startswith("add"):
 		modelName = cmd[3:]
 		print(f"Adding item of type {modelName}")
@@ -342,6 +352,9 @@ def touchpet_index():
 		else:
 			obj = models[modelName].add(request.form)
 			data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+		
+		if modelName == "player":
+			data = get_player_data(playerProfile, playerId)
 		
 		return Response(finish_response(data), mimetype="text/xml")
 	
@@ -363,6 +376,9 @@ def touchpet_index():
 		
 		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
 		
+		if modelName == "player":
+			data = get_player_data(playerProfile, playerId)
+		
 		return Response(finish_response(data), mimetype="text/xml")
 	
 	elif cmd.startswith("delta") and cmd.endswith("property"):
@@ -383,6 +399,9 @@ def touchpet_index():
 				pass
 		
 		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+		
+		if modelName == "player":
+			data = get_player_data(playerProfile, playerId)
 		
 		return Response(finish_response(data), mimetype="text/xml")
 	
