@@ -99,6 +99,15 @@ def users_update(version, appname, user_id):
 	user.set_email(user_info.get("email", ""))
 	user.set_fullname_privacy(user_info.get("fullname_privacy", 0))
 	
+	if ("password" in user_info and "password_confirmation" in user_info):
+		if (user_info['password'] == user_info['password_confirmation']):
+			try:
+				user.set_password(user_info["password"])
+			except ValidationError:
+				return {"success": False, "error_msg": "Password is too short"}
+		else:
+			return {"success": False, "error_msg": "Passwords do not match"}
+	
 	user.save()
 	
 	return {"success": True}
@@ -229,18 +238,6 @@ def session_init(version, appname):
 			return make_login_response(result.user, result.session)
 		except LoginError:
 			return {"error_msg": "Wrong username or password"}
-	
-	# return {
-	# 	"error_msg": "Login not supported yet!"
-	# }
-	
-	# return {
-	# 	"success": False,
-	# 	"auth_token": "totally_real_auth_token",
-	# 	"oauth_token": "TokenXthatsXsentXtoXserverXsoXitXneverXseesXaccountXpw",
-	# 	"oauth_secret": "totally_real_oauth_secret",
-	# 	"user_id": 1,
-	# }
 
 @app.post("/<int:version>/<appname>/oauth/authorize_new")
 def oauth_authorize_new(version, appname):
