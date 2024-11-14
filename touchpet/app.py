@@ -1,3 +1,9 @@
+"""
+TODO:
+ - Escape data and general security :-3
+ - Anything friend related
+"""
+
 from flask import Flask, Response, request
 from config import *
 import util
@@ -255,6 +261,10 @@ def get_player_data(plus_profile, player_id):
 	
 	data += f"<playerID>{player_id}</playerID>"
 	data += f"<username>{plus_profile['gamertag']}</username>"
+	
+	for k, v in plus_profile.items():
+		if k not in {"user_id"}:
+			data += f"<{k}>{v}</{k}>"
 	
 	data += Player(int(player_id)).propertiesAsXML()
 	
