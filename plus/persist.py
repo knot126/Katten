@@ -7,7 +7,7 @@ database and makes them a lot nicer to work with.
 
 from config import *
 import sys
-import pymongo
+import pymongo, pymongo.mongo_client
 
 client = pymongo.mongo_client.MongoClient(PLUS_MONGO_URI)
 
