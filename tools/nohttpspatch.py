@@ -115,6 +115,12 @@ class Stream:
 	def writeUInt32(self, value):
 		self.write(value.to_bytes(4, self.endian))
 	
+	def writeUInt32To(self, pos, value):
+		p = self.getPos()
+		self.setPos(pos)
+		self.writeUInt32(value)
+		self.setPos(p)
+	
 	def push(self):
 		self.posStack.append(self.getPos())
 	
