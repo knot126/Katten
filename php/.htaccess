@@ -1,0 +1,2 @@
+RewriteEngine on
+RewriteRule ^/?([0-9]+)/([A-Za-z0-9]+)/(.+)$ "/Katten.php?version=$1&appname=$2&request=$3"

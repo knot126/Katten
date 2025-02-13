@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="128"
+   height="128"
+   viewBox="0 0 33.866666 33.866666"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="ColonThree.svg"
+   inkscape:export-filename="ColonThree.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="6.1171875"
+     inkscape:cx="63.918263"
+     inkscape:cy="64"
+     inkscape:window-width="1920"
+     inkscape:window-height="995"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text275" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#7137c8;stroke:none;stroke-width:0.211667;stroke-linecap:round;stroke-linejoin:round"
+       id="rect111"
+       width="33.866665"
+       height="33.866665"
+       x="0"
+       y="0" />
+    <g
+       aria-label=":3"
+       id="text275"
+       style="font-size:30.9928px;font-family:Inter;-inkscape-font-specification:Inter;fill:#37c837;stroke-width:0.581115;stroke-linecap:round;stroke-linejoin:round">
+      <path
+         d="m 5.9928859,23.795679 q 0,0.681841 0.4958848,1.208719 0.5268776,0.495885 1.2087192,0.495885 0.7128344,0 1.2087192,-0.495885 0.4958848,-0.526878 0.4958848,-1.208719 0,-0.712835 -0.4958848,-1.208719 -0.4958848,-0.495885 -1.2087192,-0.495885 -0.6818416,0 -1.2087192,0.495885 -0.4958848,0.495884 -0.4958848,1.208719 z m 0,-11.777264 q 0,0.681842 0.4958848,1.208719 0.5268776,0.495885 1.2087192,0.495885 0.7128344,0 1.2087192,-0.495885 0.4958848,-0.526877 0.4958848,-1.208719 0,-0.712834 -0.4958848,-1.208719 -0.4958848,-0.495885 -1.2087192,-0.495885 -0.6818416,0 -1.2087192,0.495885 -0.4958848,0.495885 -0.4958848,1.208719 z"
+         style="font-family:Jost;-inkscape-font-specification:Jost"
+         id="path379" />
+      <path
+         d="m 20.187565,17.088297 q 2.10751,0 3.688143,-0.743827 1.580632,-0.743828 2.479424,-2.014532 0.898791,-1.270705 0.898791,-2.789352 0,-1.5496403 -0.743827,-2.8513379 -0.712835,-1.3016976 -2.076518,-2.1075104 -1.33269,-0.8058128 -3.192258,-0.8058128 -1.76659,0 -3.161266,0.7438272 -1.363683,0.7128344 -2.169496,1.9835392 -0.77482,1.2707048 -0.77482,2.9753087 h 2.510417 q 0,-1.425669 1.053755,-2.3554527 1.053755,-0.9607768 2.572403,-0.9607768 1.084748,0 1.797582,0.4338992 0.743827,0.4338992 1.115741,1.239712 0.371913,0.7748203 0.371913,1.7975823 0,0.77482 -0.309928,1.456662 -0.278935,0.681841 -0.836805,1.208719 -0.557871,0.495885 -1.363683,0.805813 -0.805813,0.278935 -1.859568,0.278935 z m 0.929784,11.002444 q 1.952546,0 3.471193,-0.743827 1.518647,-0.743828 2.386446,-2.107511 0.898791,-1.363683 0.898791,-3.192258 0,-1.611626 -0.619856,-2.758359 Q 26.66506,18.142052 25.580312,17.429218 24.526556,16.68539 23.131881,16.34447 21.768197,16.003549 20.187565,16.003549 v 1.704604 q 1.053755,0 1.952546,0.247942 0.898791,0.247943 1.580633,0.77482 0.681841,0.495885 1.053755,1.270705 0.402906,0.743827 0.402906,1.735597 0,1.177726 -0.495885,2.045525 -0.495884,0.867798 -1.425668,1.363683 -0.898791,0.464892 -2.138503,0.464892 -1.239712,0 -2.200489,-0.464892 -0.960777,-0.464892 -1.518647,-1.270705 -0.526878,-0.805813 -0.526878,-1.828575 h -2.665381 q 0,1.270705 0.495885,2.386445 0.495885,1.084748 1.394676,1.921554 0.898791,0.805813 2.169496,1.270705 1.270705,0.464892 2.851338,0.464892 z"
+         style="font-family:Jost;-inkscape-font-specification:Jost"
+         id="path381" />
+    </g>
+  </g>
+</svg>
