@@ -1,3 +1,7 @@
+## Important
+
+**Katten will probably be updated on [Codeberg](https://codeberg.org/knot126/Katten) in the future.**
+
 <img src="res/KattenLogo.svg" width="100%"/>
 
 # Katten Project
