@@ -53,7 +53,12 @@ class User(Persistent):
 		self.age_restricted = 0
 	
 	def on_load(self):
+		# Some earlier versions had age restricted set to a different type
 		self.age_restricted = int(self.age_restricted)
+		
+		# Badge ID can be empty string (somehow), set a default if so.
+		self.badge_id = self.badge_id or f"http://{request.host}/static/badges/1.png"
+		
 		pass
 	
 	def get_id(self):
@@ -198,7 +203,7 @@ class UserSession(Persistent):
 		Make sure this session is allowable.
 		"""
 		
-		if (self.token == None or self.user == None or self.expire < int(time.time())):
+		if (self.token == None or self.user == None or (PLUS_SESSION_EXPIRY and self.expire < int(time.time()))):
 			self.delete()
 			return False
 		

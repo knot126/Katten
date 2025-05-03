@@ -261,7 +261,10 @@ def session_get_status(version, appname):
 	Get the status of the session for the given device and game.
 	"""
 	
-	user = User.current()
+	try:
+		user = User.current()
+	except SessionError:
+		return {"success": False, "error_msg": "Invalid session"}
 	
 	if user:
 		return {"success": True}
