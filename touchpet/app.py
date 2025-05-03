@@ -4,7 +4,7 @@ TODO:
  - Anything friend related
 """
 
-from flask import Flask, Response, request
+from flask import Flask, Response, request, g
 from config import *
 import util
 from persist import Persistent
@@ -253,7 +253,7 @@ def petmaster_php():
 	return "Katten does not support microtransactions."
 
 def validate_session(token, player_id):
-	result = util.post(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/session", {"auth_token": token})
+	result = util.post(f"http://{PLUS_SERVER}/1/{g.appname}/session", {"auth_token": token})
 	return result["profile"] if result["success"] else None
 
 def get_player_data(plus_profile, player_id):
@@ -422,6 +422,23 @@ def touchpet_index():
 @app.get("/")
 def index():
 	return "Katten Touch Pets server"
+
+@app.before_request
+def configure_appname():
+	"""
+	Try to guess the appname from the user agent. Doing this allows us to use
+	multiple apps (e.g. TPD, TPD2, TPC) with different data while running only
+	one server.
+	"""
+	
+	ua = [x.split('/') for x in request.user_agent.string.split()]
+	
+	for entry in ua:
+		if entry[0] in TP_DATABASE_MAPS:
+			g.appname = entry[0]
+			break
+	else:
+		g.appname = TP_DEFAULT_APPNAME
 
 # Misc todos:
 # - should really store uuid's and check against them so we don't end up in a

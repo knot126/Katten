@@ -6,6 +6,7 @@ database and makes them a lot nicer to work with.
 """
 
 from config import *
+from flask import g
 import sys
 import pymongo, pymongo.mongo_client
 
@@ -21,7 +22,7 @@ except pymongo.errors.ConnectionFailure:
 class Object: pass
 
 def get_collection(classname):
-	return client.get_database(TP_MONGO_DB).get_collection(classname)
+	return client.get_database(TP_DATABASE_MAPS[g.appname]).get_collection(classname)
 
 class Persistent:
 	"""
