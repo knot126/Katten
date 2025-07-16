@@ -1,21 +1,17 @@
+"""
+Account and user related stuff
+"""
+
 from config import *
 from persist import Persistent
 from flask import request
 import time
-import argon2
+
 import secrets
 import re
 import base64
 import hashlib
 from collections import namedtuple
-
-def password_hash(password):
-	ph = argon2.PasswordHasher()
-	return ph.hash(password)
-
-def password_verify(hash, candidate):
-	ph = argon2.PasswordHasher()
-	return ph.verify(hash, candidate)
 
 def validate_gamertag(gamertag):
 	return re.match(r"[a-zA-Z0-9]{" + str(PLUS_GAMERTAG_MIN_LENGTH) + "," + str(PLUS_GAMERTAG_MAX_LENGTH) + r"}", gamertag) != None
@@ -76,12 +72,12 @@ class User(Persistent):
 		if not validate_password(pw):
 			raise ValidationError("Invalid password")
 		
-		self.password = password_hash(pw)
+		self.password = password.hash(pw)
 	
 	def check_password(self, cand):
 		try:
-			return password_verify(self.password, cand)
-		except argon2.exceptions.VerifyMismatchError:
+			return password.verify(self.password, cand)
+		except password.IncorrectPasswordError:
 			return False
 	
 	def set_email(self, email):
