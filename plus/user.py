@@ -1,4 +1,6 @@
 from config import *
+from persist import Persistent
+from flask import request
 import time
 import argon2
 import secrets
@@ -341,3 +343,5 @@ class UserAppDataEntry(Persistent):
 		# TODO privacy stuff, probably
 		
 		return base64.b64decode(entry.value)
+
+__all__ = list(globals().keys())

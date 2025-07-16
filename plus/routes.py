@@ -1,10 +1,15 @@
+from flask import Blueprint, Response, request, g, make_response, url_for, abort, redirect
+from user import *
+
+bp = Blueprint(__name__, __name__)
+
 # Identification page
-@app.route("/")
+@bp.route("/")
 def index():
 	return "<p><i>Katten Plus+ server</i></p>"
 
 # Ping
-@app.get("/<int:version>/<appname>/ping")
+@bp.get("/<int:version>/<appname>/ping")
 def ping(version, appname):
 	return make_response({
 		"success": True,
@@ -37,11 +42,11 @@ def list_games(appname):
 		],
 	}
 
-@app.get("/<int:version>/<appname>/games")
+@bp.get("/<int:version>/<appname>/games")
 def get_games(version, appname):
 	return list_games(appname)
 
-@app.get("/<int:version>/<appname>/users/<int:user_id>/games")
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/games")
 def get_user_games(version, appname, user_id):
 	return list_games(appname)
 
@@ -52,7 +57,7 @@ def list_badges():
 	badges = []
 	
 	for f in badge_files:
-		badges.append({"icon_url": f"http://{request.host}/static/badges/{f}"})
+		badges.append({"id": f, "icon_url": f"http://{request.host}/static/badges/{f}"})
 	
 	return {
 		"success": True,
@@ -64,16 +69,16 @@ def list_badges():
 		],
 	}
 
-@app.get("/<int:version>/<appname>/badges")
+@bp.get("/<int:version>/<appname>/badges")
 def badges(version, appname):
 	return list_badges()
 
-@app.get("/<int:version>/<appname>/users/<int:user_id>/badges")
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/badges")
 def user_badges(version, appname, user_id):
 	return list_badges()
 
 # Users
-@app.post("/<int:version>/<appname>/users")
+@bp.post("/<int:version>/<appname>/users")
 def users_register(version, appname):
 	form_dict = request.form.to_dict()
 	user_info = {}
@@ -86,7 +91,7 @@ def users_register(version, appname):
 	
 	return make_login_response(result.user, result.session)
 
-@app.put("/<int:version>/<appname>/users/<int:user_id>")
+@bp.put("/<int:version>/<appname>/users/<int:user_id>")
 def users_update(version, appname, user_id):
 	user = User.current()
 	
@@ -112,7 +117,7 @@ def users_update(version, appname, user_id):
 	
 	return {"success": True}
 
-@app.get("/<int:version>/<appname>/users/<gamertag>")
+@bp.get("/<int:version>/<appname>/users/<gamertag>")
 def users_lookup_by_gamertag(version, appname, gamertag):
 	user = User.lookup({"gamertag": gamertag})
 	
@@ -123,7 +128,7 @@ def users_lookup_by_gamertag(version, appname, gamertag):
 	result["success"] = True
 	return result
 
-@app.post("/<int:version>/<appname>/users/validate")
+@bp.post("/<int:version>/<appname>/users/validate")
 def users_validate(version, appname):
 	"""
 	Validate if a user's name, email, etc are valid
@@ -148,7 +153,7 @@ def users_validate(version, appname):
 	
 	return {"success": True} if not msg else {"success": False, "error_msg": msg}
 
-@app.post("/<int:version>/<appname>/users/<int:user_id>/user_data")
+@bp.post("/<int:version>/<appname>/users/<int:user_id>/user_data")
 def user_data_set(version, appname, user_id):
 	"""
 	Save a key-value pair; ignores user id for now as it's not possbile to
@@ -164,7 +169,7 @@ def user_data_set(version, appname, user_id):
 		"success": True
 	}
 
-@app.get("/<int:version>/<appname>/users/<int:user_id>/user_data/<key>")
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/user_data/<key>")
 def user_data_get_one(version, appname, user_id, key):
 	"""
 	Get a single value from user data storage
@@ -175,7 +180,7 @@ def user_data_get_one(version, appname, user_id, key):
 	
 	return Response(data, mimetype='application/octet-stream')
 
-@app.get("/<int:version>/<appname>/users/<int:user_id>/user_data")
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/user_data")
 def user_data_get_keys(version, appname, user_id):
 	"""
 	Get a list of keys that are stored for the given user
@@ -193,7 +198,7 @@ def user_data_get_keys(version, appname, user_id):
 		"datas": datas,
 	}
 
-@app.get("/<int:version>/<appname>/user_updates")
+@bp.get("/<int:version>/<appname>/user_updates")
 def get_user_updates(version, appname):
 	user = User.current()
 	
@@ -204,7 +209,7 @@ def get_user_updates(version, appname):
 		"update_interval": PLUS_USER_UPDATE_INTERVAL,
 	}
 
-@app.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
 def users_buddies(version, appname, user_id):
 	user = User.current()
 	
@@ -215,7 +220,7 @@ def users_buddies(version, appname, user_id):
 		"total": 0,
 	}
 
-@app.post("/<int:version>/<appname>/session")
+@bp.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
 	# Katten doesn't really care about OAuth 1.0's signing things; it's only
 	# relevant over an insecure HTTP connection anyway.
@@ -226,7 +231,7 @@ def session_init(version, appname):
 		session = UserSession.lookup({"token": request.form["auth_token"]})
 		
 		if not session or not session.validate():
-			return {"success": False, "error_msg": "Session is not valid"}
+			return {"success": False, "error": 401, "error_msg": "Session is not valid"}
 		
 		user = session.get_user()
 		
@@ -237,9 +242,9 @@ def session_init(version, appname):
 			
 			return make_login_response(result.user, result.session)
 		except LoginError:
-			return {"error_msg": "Wrong username or password"}
+			return {"success": False, "error_msg": "Wrong username or password"}
 
-@app.post("/<int:version>/<appname>/oauth/authorize_new")
+@bp.post("/<int:version>/<appname>/oauth/authorize_new")
 def oauth_authorize_new(version, appname):
 	"""
 	This should do something oauth related but we can just return the typcial
@@ -249,13 +254,13 @@ def oauth_authorize_new(version, appname):
 	session = UserSession.current()
 	
 	if not session or not session.validate():
-		return {"success": False, "error_msg": "Session is not valid"}
+		return {"success": False, "error": 401, "error_msg": "Session is not valid"}
 	
 	user = session.get_user()
 	
 	return make_login_response(user, session)
 
-@app.get("/<int:version>/<appname>/session")
+@bp.get("/<int:version>/<appname>/session")
 def session_get_status(version, appname):
 	"""
 	Get the status of the session for the given device and game.
@@ -264,7 +269,7 @@ def session_get_status(version, appname):
 	try:
 		user = User.current()
 	except SessionError:
-		return {"success": False, "error_msg": "Invalid session"}
+		return {"success": False, "error": 401, "error_msg": "Invalid session"}
 	
 	if user:
 		return {"success": True}

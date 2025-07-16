@@ -2,6 +2,8 @@
 App and game info and registration
 """
 
+from persist import Persistent
+
 class Game(Persistent):
 	def on_init(self):
 		self.app_key = None

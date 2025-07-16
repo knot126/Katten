@@ -31,7 +31,8 @@ class Property(Persistent):
 	@classmethod
 	def get(self, typeName, objectId, categoryId, propertyId):
 		prop = self.lookup({"type": typeName, "object_id": objectId, "category_id": categoryId, "property_id": propertyId})
-		return self.value
+		print(prop)
+		return prop.value if prop else None
 	
 	@classmethod
 	def getAll(self, typeName, objectId):
@@ -124,6 +125,9 @@ class Model(Persistent):
 			xml += obj.toXMLWithProperties()
 		
 		return xml + f"</{lower}s>"
+	
+	def getProperty(self, catid, propid):
+		return Property.get(self.__class__.__name__, self._id, int(catid), int(propid))
 	
 	def setProperty(self, catid, propid, value):
 		Property.set(self.__class__.__name__, self._id, int(catid), int(propid), int(value))
@@ -250,7 +254,31 @@ def getpid_php():
 
 @app.get("/touchpet/gamedata/petmaster.php")
 def petmaster_php():
-	return "Katten does not support microtransactions."
+	profile = validate_session(request.args.get('st', ''), int(request.args.get('p', '1')))
+	player = Player(int(request.args.get('p', '1')))
+	g.appname = request.args.get('_appname', g.appname)
+	
+	if profile:
+		match request.args['page']:
+			case "intro":
+				coins = player.getProperty(1, 3)
+				
+				return f"""<h2>Hello, {profile['gamertag']}</h2>
+				<p>You have {coins} coins. Please, pick what you would like to order.</p>
+				<a href=\"https://{request.host}/touchpet/gamedata/petmaster.php?page=purchasebones&st={request.args['st']}&p={request.args['p']}\">Buy 10 bones for 250 coins</a>"""
+			
+			case "purchasebones":
+				if player.getProperty(1, 3) >= 250:
+					player.deltaProperty(1, 3, -250)
+					player.deltaProperty(1, 24, 10)
+					return f"<h2>Transaction successful</h2>"
+				else:
+					return f"<h2>You don't have enough coins!</h2>"
+			
+			case _:
+				return "<h1><span style=\"color: red;\">Not a valid page</span></h1>"
+	else:
+		return "<h1><span style=\"color: red;\">Your session is not valid</span></h1>"
 
 def validate_session(token, player_id):
 	result = util.post(f"http://{PLUS_SERVER}/1/{g.appname}/session", {"auth_token": token})
