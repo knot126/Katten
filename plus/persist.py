@@ -1,8 +1,10 @@
 """
-Essentially, this is a database module.
+This is an implementation of the Active Record Pattern, though I did not know
+that at the time I wrote this:
+https://en.wikipedia.org/wiki/Active_record_pattern.
 
-This provides a standard interface for objects that will be stored in the
-database and makes them a lot nicer to work with.
+This provides a standard, object oriented interface for objects that will be
+stored in the database and makes them a lot nicer to work with.
 """
 
 from config import *
@@ -17,8 +19,6 @@ try:
 except pymongo.errors.ConnectionFailure:
 	print(f"The Plus server could not connect to MongoDB at '{PLUS_MONGO_URI}'.\nPlease make sure that MongoDB is running and accessable to the Plus server.")
 	sys.exit(1)
-
-class Object: pass
 
 def get_collection(classname):
 	return client.get_database(PLUS_DEFAULT_DB).get_collection(classname)
