@@ -7,45 +7,36 @@ Notes:
 * This only works with earlier games at the moment, Touch Pets will be a later focus.
 * If you want to see the old work for Katten which can kind of get Touch Pets booting check out the `php` folder.
 
-## Status
+## Feature status
 
-- [ ] Core
-  - [ ] Implemented routes return:
-    - [x] `success` (`true` or `false`)
-    - [ ] `error` (integer error code, only on error)
-    - [x] `error_msg` (error description, only on error)
-  - [ ] OAuth 1.0 support
-    - Note: Currently there is a hack that just uses the session token instead of an oauth token. 
-- [ ] Users and sessions
-  - [x] Create an account
-  - [x] Log in with username and password
-  - [x] Log in with existing session
-  - [ ] Query session status for device and game combonation
-  - [ ] Update device token
-  - [ ] Password reset
-  - [ ] ...
-- [ ] Friends and enimies
-  - [ ] Find users
-  - [ ] Add and remove friends
-  - [ ] ...
-- [ ] Profile
-  - [ ] Badges
-    - [x] Choice from static selection
-    - [ ] Uploading custom badges (for admins)
-  - [x] Update profile (badge, name, email, phone number, etc.)
-  - [ ] Custom photo
-  - [ ] ...
-- [ ] Score
-- [ ] Achivements
-- [ ] User data
-  - [x] Set a key to a value
-  - [x] Get a value for a key
-  - [x] List all keys
-  - [ ] Respects privacy setings
-  - [ ] ...
-- [ ] Game info
+- [x] Register
+- [x] Log in
+- [x] Continue a session
+- [ ] Password reset
+- [x] Update account details
+- [x] Badges
+  - Note: Could be improved
+- [ ] Custom friends-only photo
+- [ ] Games list and registration
+- [ ] Buddies (friends and enimies)
+- [x] Key-value storage (cloud save)
+- [ ] Gamer score
 - [ ] Leaderboards
-- [ ] ...
+- [ ] Achievements
+- [ ] Invitations
+- [ ] Admin features
+- [ ] Flagging
+
+And probably other features too.
+
+### Features that will not be implemented
+
+- Push notifications
+
+### Notes
+
+- Plus+ uses OAuth 1.0 to grant games access to parts of a User's Plus account, but currently there is a hack that just uses the session token instead of an oauth token.
+- Some integer error codes are not accurate and probably completely lost to time
 
 ## Depends
 

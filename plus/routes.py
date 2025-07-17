@@ -109,9 +109,9 @@ def users_update(version, appname, user_id):
 			try:
 				user.set_password(user_info["password"])
 			except ValidationError:
-				return {"success": False, "error_msg": "Password is too short"}
+				return {"success": False, "error": 1, "error_msg": "Password is too short"}
 		else:
-			return {"success": False, "error_msg": "Passwords do not match"}
+			return {"success": False, "error": 1, "error_msg": "Passwords do not match"}
 	
 	user.save()
 	
@@ -122,7 +122,7 @@ def users_lookup_by_gamertag(version, appname, gamertag):
 	user = User.lookup({"gamertag": gamertag})
 	
 	if not user:
-		return {"success": False, "error_msg": "User does not exist"}
+		return {"success": False, "error": 1, "error_msg": "User does not exist"}
 	
 	result = user.to_dict()
 	result["success"] = True
@@ -151,7 +151,7 @@ def users_validate(version, appname):
 		case "first_name" | "last_name":
 			msg = None if validate_first_or_last(value) else f"Invalid {field.replace('_', ' ')}"
 	
-	return {"success": True} if not msg else {"success": False, "error_msg": msg}
+	return {"success": True} if not msg else {"success": False, "error": 1, "error_msg": msg}
 
 @bp.post("/<int:version>/<appname>/users/<int:user_id>/user_data")
 def user_data_set(version, appname, user_id):
@@ -242,7 +242,7 @@ def session_init(version, appname):
 			
 			return make_login_response(result.user, result.session)
 		except LoginError:
-			return {"success": False, "error_msg": "Wrong username or password"}
+			return {"success": False, "error": 1, "error_msg": "Wrong username or password"}
 
 @bp.post("/<int:version>/<appname>/oauth/authorize_new")
 def oauth_authorize_new(version, appname):
