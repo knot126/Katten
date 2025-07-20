@@ -4,9 +4,10 @@ Account and user related stuff
 
 from config import *
 from persist import Persistent
+from utils import *
 from flask import request
 import time
-
+import password
 import secrets
 import re
 import base64
@@ -42,20 +43,20 @@ class User(Persistent):
 		self.photo_url = ""
 		self.motto = ""
 		self.email = ""
+		self.email_hash = ""
 		self.phone_number = ""
 		self.password = ""
 		self.first_name = ""
 		self.last_name = ""
 		self.opt_in = False
-		self.fullname_privacy = 0
-		self.age_restricted = 0
+		self.fullname_privacy = False
+		self.age_restricted = False
 	
 	def on_load(self):
 		# Some earlier versions had age restricted set to a different type
-		self.age_restricted = int(self.age_restricted)
+		self.age_restricted = bool(self.age_restricted)
 		
-		# Badge ID can be empty string (somehow), set a default if so.
-		self.badge_id = self.badge_id or f"http://{request.host}/static/badges/1.png"
+		
 		
 		pass
 	
@@ -85,6 +86,7 @@ class User(Persistent):
 			raise ValidationError("Invalid email")
 		
 		self.email = email
+		self.email_hash = sha1(email)
 	
 	def set_motto(self, motto):
 		self.motto = motto
@@ -108,12 +110,37 @@ class User(Persistent):
 	def set_opt_in(self, optin):
 		self.opt_in = not not optin
 	
-	def to_dict(self):
-		result = self.__dict__.copy()
-		result["user_id"] = result["_id"]
-		del result["_id"]
-		del result["_ver"]
-		del result["password"]
+	def to_dict(self, private=False):
+		current_user = User.current(False)
+		
+		result = {
+			"user_id": self._id,
+			"gamertag": self.gamertag,
+			"badge_id": self.badge_id,
+			"photo_url": self.photo_url,
+			"motto": self.motto,
+			"email_hash": sha1(self.email),
+			"first_name": self.first_name,
+			"lite": False,
+			"capabilities": {"push_notifications": 0},
+			"gamerscore": 0,
+			"level_position": 0,
+			"level_name": "Trogdor",
+			"level_points": 0,
+			"level_next_points": 1000,
+		}
+		
+		if private:
+			result['email'] = self.email
+			result['phone_number'] = self.phone_number
+			result['password'] = self.password
+			result['last_name'] = self.last_name
+			result['opt_in'] = False
+			result['fullname_privacy'] = self.fullname_privacy
+			result['age_restricted'] = self.age_restricted
+		else:
+			result['last_name'] = self.last_name if not self.fullname_privacy else ""
+		
 		return result
 	
 	@classmethod
@@ -297,7 +324,7 @@ def make_login_response(user, session):
 			"web_view": False,
 		}
 	]
-	response["profile"] = user.to_dict()
+	response["profile"] = user.to_dict(True)
 	
 	return response
 

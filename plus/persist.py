@@ -119,7 +119,7 @@ class Persistent:
 		"""
 		
 		# Load from DB
-		coll = get_collection(self.get_class_name())
+		coll = get_collection(self.__name__)
 		result = coll.find(filter)
 		
 		objects = []
@@ -190,7 +190,11 @@ class Persistent:
 		Called when the object is first created in the database.
 		"""
 		
-		pass
+		cls = self.get_class()
+		
+		if hasattr(cls, 'fields'):
+			for field in cls.fields:
+				setattr(self, field, cls.fields[field])
 	
 	def on_load(self):
 		"""

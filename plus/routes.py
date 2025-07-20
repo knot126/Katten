@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, request, g, make_response, url_for, abort, redirect
 from user import *
+from utils import *
 
 bp = Blueprint(__name__, __name__)
 
@@ -31,9 +32,9 @@ def list_games(appname):
 				"id": 1,
 				"master_product_id": 1,
 				"icon_url": f"http://{request.host}/static/badges/0.png",
-				"app_store_url": "",
-				"feed_url": "",
-				"catalog_url": "",
+				"app_store_url": "http://example.com/",
+				"feed_url": "http://example.com/",
+				"catalog_url": "http://example.com/",
 				"description": "This is the current game.",
 				"phone_screenshot_urls": [f"http://{request.host}/static/badges/0.png"],
 				"phone_thumbnail_urls": [f"http://{request.host}/static/badges/0.png"],
@@ -109,9 +110,9 @@ def users_update(version, appname, user_id):
 			try:
 				user.set_password(user_info["password"])
 			except ValidationError:
-				return {"success": False, "error": 1, "error_msg": "Password is too short"}
+				plus_error(1, "Password is too short")
 		else:
-			return {"success": False, "error": 1, "error_msg": "Passwords do not match"}
+			plus_error(1, "Passwords do not match")
 	
 	user.save()
 	
@@ -122,11 +123,22 @@ def users_lookup_by_gamertag(version, appname, gamertag):
 	user = User.lookup({"gamertag": gamertag})
 	
 	if not user:
-		return {"success": False, "error": 1, "error_msg": "User does not exist"}
+		plus_error(404, "Playername not found!")
 	
 	result = user.to_dict()
 	result["success"] = True
 	return result
+
+@bp.get("/<int:version>/<appname>/users/search")
+def users_search(version, appname):
+	criteria = None
+	
+	if "email_hash" in request.args:
+		criteria = {"email_hash": request.args['email_hash']}
+	
+	users = User.lookup_many(criteria)
+	
+	return {"success": True, "list": [u.to_dict() for u in users]}
 
 @bp.post("/<int:version>/<appname>/users/validate")
 def users_validate(version, appname):
@@ -231,7 +243,7 @@ def session_init(version, appname):
 		session = UserSession.lookup({"token": request.form["auth_token"]})
 		
 		if not session or not session.validate():
-			return {"success": False, "error": 401, "error_msg": "Session is not valid"}
+			plus_error(401, "Session is not valid")
 		
 		user = session.get_user()
 		
@@ -242,7 +254,7 @@ def session_init(version, appname):
 			
 			return make_login_response(result.user, result.session)
 		except LoginError:
-			return {"success": False, "error": 1, "error_msg": "Wrong username or password"}
+			plus_error(1, "Wrong username or password")
 
 @bp.post("/<int:version>/<appname>/oauth/authorize_new")
 def oauth_authorize_new(version, appname):
@@ -254,7 +266,7 @@ def oauth_authorize_new(version, appname):
 	session = UserSession.current()
 	
 	if not session or not session.validate():
-		return {"success": False, "error": 401, "error_msg": "Session is not valid"}
+		plus_error(401, "Session is not valid")
 	
 	user = session.get_user()
 	
@@ -269,7 +281,7 @@ def session_get_status(version, appname):
 	try:
 		user = User.current()
 	except SessionError:
-		return {"success": False, "error": 401, "error_msg": "Invalid session"}
+		plus_error(401, "Invalid session")
 	
 	if user:
 		return {"success": True}
