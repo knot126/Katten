@@ -1,0 +1,425 @@
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.11/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.11/ http://www.mediawiki.org/xml/export-0.11.xsd" version="0.11" xml:lang="en-GB">
+  <siteinfo>
+    <sitename>Knot's Personal Wiki</sitename>
+    <dbname>wiki</dbname>
+    <base>http://localhost:17751/index.php/Main_Page</base>
+    <generator>MediaWiki 1.43.1</generator>
+    <case>first-letter</case>
+    <namespaces>
+      <namespace key="-2" case="first-letter">Media</namespace>
+      <namespace key="-1" case="first-letter">Special</namespace>
+      <namespace key="0" case="first-letter" />
+      <namespace key="1" case="first-letter">Talk</namespace>
+      <namespace key="2" case="first-letter">User</namespace>
+      <namespace key="3" case="first-letter">User talk</namespace>
+      <namespace key="4" case="first-letter">Project</namespace>
+      <namespace key="5" case="first-letter">Project talk</namespace>
+      <namespace key="6" case="first-letter">File</namespace>
+      <namespace key="7" case="first-letter">File talk</namespace>
+      <namespace key="8" case="first-letter">MediaWiki</namespace>
+      <namespace key="9" case="first-letter">MediaWiki talk</namespace>
+      <namespace key="10" case="first-letter">Template</namespace>
+      <namespace key="11" case="first-letter">Template talk</namespace>
+      <namespace key="12" case="first-letter">Help</namespace>
+      <namespace key="13" case="first-letter">Help talk</namespace>
+      <namespace key="14" case="first-letter">Category</namespace>
+      <namespace key="15" case="first-letter">Category talk</namespace>
+      <namespace key="828" case="first-letter">Module</namespace>
+      <namespace key="829" case="first-letter">Module talk</namespace>
+    </namespaces>
+  </siteinfo>
+  <page>
+    <title>Plus+</title>
+    <ns>0</ns>
+    <id>16</id>
+    <revision>
+      <id>179</id>
+      <parentid>178</parentid>
+      <timestamp>2025-07-25T17:42:20Z</timestamp>
+      <contributor>
+        <username>Knot126</username>
+        <id>1</id>
+      </contributor>
+      <minor/>
+      <comment>/* PUT /user_offers/:offerId */</comment>
+      <origin>179</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="17131" sha1="nh4lhewwy8mvm1nzlmbouwn5acqq54z" xml:space="preserve">[[File:PlusPlus Logo.png|thumb|The logo for Plus+]]
+'''Plus+''' was a social gaming network created by ngmoco in 2009 for the iPhone. It closed on 31 March 2013 following the purchase of ngmoco by DeNA, who provided a similar service in eastern countries.
+
+Its infrastructure seems to have been used for DeNA's attempted entrance into the western market, '''Mobage West''', which acted as the successor to Plus+. Mobage West was reportedly shut down in 2018 with no notice given, though there is seemingly no reliable source for this.
+
+== Plus+ SDK ==
+
+=== Network Requests ===
+Some network requests to the Plus+ servers at &lt;code&gt;app.plusplus.com&lt;/code&gt; are done asynchronously by:
+
+# Creating an instance of &lt;code&gt;NGPlatformAPIOperation&lt;/code&gt;.
+# Initialising with a callback of the form &lt;code&gt;-(void)[object callback: (NGPlatformAPIOperationResult) result]&lt;/code&gt; and an &lt;code&gt;object&lt;/code&gt; to preform it on.
+# Setting a few properties using setters, like user info (extra data passed to callback), the http method, the endpoint, and weather to use TLS or not.
+# Adding it to the request queue using the &lt;code&gt;enqueue&lt;/code&gt; method.
+Note that requests are usually done asynchronously. As an example, here is a decompiled method to ping the Plus+ server:&lt;syntaxhighlight lang="objc"&gt;
+- (void) pingPlusServerWithTarget: (NSObject) target action: (SEL) action
+{
+    NGPlatformAPIOperation *operation = [[NGPlatformAPIOperation alloc] initWithTarget: this action: "_pingCallback:"]; 
+    NSDictionary *user_info = [NSDictionary dictionaryWithObjectsAndKeys: target, @"target", @selector(action), @"action", nil];
+    [operation setUserInfo: user_info];
+    [operation setHttpMethod: @"GET"];
+    [operation setApiMethod: @"ping"];
+    [operation enqueue];
+}
+
+
+&lt;/syntaxhighlight&gt;Sometimes, they are also done synchronously using &lt;code&gt;synchronouslyPerformAction:method:data:&lt;/code&gt;.
+
+Some more complicated record types are typically initialised by passing a response dictionary into an &lt;code&gt;initWithDictionary:&lt;/code&gt; method.
+
+== Plus+ Server ==
+
+=== Misc Details ===
+[[File:Screenshot 20250614 034104.png|thumb|Original headers for Plus+ server, according to archive.org. Notice the use of Phusion Passenger with Ruby on Rails.]]
+The original Plus+ server appears to have been written in Ruby.
+
+=== Requests ===
+Requests are sent to &lt;code&gt;app.plusplus.com&lt;/code&gt; over HTTP (or HTTPS if the request explicitly specifies itself to be secure). Plus+ constructs the user agent from the app key and version, plus+ sdk version and OS and version: &lt;code&gt;{appKey}/{appVersion} PlusPlus/{plusVersion} {osName}/{osVersion}&lt;/code&gt;.
+
+=== Authentication ===
+Most authentication uses OAuth 1.0.
+
+=== Responses ===
+Responses usually consist of a JSON (&lt;code&gt;application/json&lt;/code&gt;) or binary plist (&lt;code&gt;application/binary-plist&lt;/code&gt;) document with the root node being a dictionary, where most of the response data is stored. This dictionary always contains the key &lt;code&gt;success&lt;/code&gt;, a &lt;code&gt;'''true'''&lt;/code&gt; or &lt;code&gt;'''false'''&lt;/code&gt; value which is true if the request was successful. When this page gives concrete examples, it assumes JSON is being used, but as long as the http &lt;code&gt;Accept&lt;/code&gt; header contains the MIME type for binary plists they can be used too.
+
+=== Error Responses ===
+Error responses (that aren't completely fatal) still give HTTP status &lt;code&gt;200 OK&lt;/code&gt; (or &lt;code&gt;304 Not Modified&lt;/code&gt; when using &lt;code&gt;ETag&lt;/code&gt;s), but will have success set to &lt;code&gt;false&lt;/code&gt; in the response body, an &lt;code&gt;error&lt;/code&gt; field containing a numerical error code, and an &lt;code&gt;error_msg&lt;/code&gt; string.&lt;ref&gt;https://web.archive.org/web/20100428132215im_/http://app.plusplus.com/users/update_password&lt;/ref&gt;&lt;ref&gt;https://web.archive.org/web/20131120015720im_/http://app.mobage.com:80/1/Bahamut-Android/session&lt;/ref&gt;&lt;ref&gt;https://web.archive.org/web/20150807000506im_/http://app.mobage.com:80/users/2903f0ce1bb30fa45713d75f0573b8c1a55625c6/opt_out&lt;/ref&gt; For example:&lt;syntaxhighlight lang="json"&gt;
+{
+    "success": false,
+    "error": 404,
+    "error_msg": "Playername not found!"
+}
+&lt;/syntaxhighlight&gt;
+
+=== Common Data Types ===
+
+==== ''User'' ====
+An object/dictionary containing info about a given user:
+
+* &lt;code&gt;user_id&lt;/code&gt; (int): User ID
+* &lt;code&gt;gamertag&lt;/code&gt;: Display name (gamername)
+* &lt;code&gt;badge_id&lt;/code&gt;: The ID of the user's public profile image
+* &lt;code&gt;photo_url&lt;/code&gt;: The user's friends-only profile photo URL
+* &lt;code&gt;motto&lt;/code&gt;: Short status text, similar to a Discord status
+* &lt;code&gt;email&lt;/code&gt;: Email address
+* &lt;code&gt;email_hash&lt;/code&gt;: Hash of the email address
+* &lt;code&gt;phone_number&lt;/code&gt;: Phone number
+* &lt;code&gt;password&lt;/code&gt;: Hash of the user's password
+* &lt;code&gt;first_name&lt;/code&gt;: First name
+* &lt;code&gt;last_name&lt;/code&gt;: Last name
+* &lt;code&gt;fullname_privacy&lt;/code&gt; (bool): Should the user's full name be private?
+* &lt;code&gt;age_restricted&lt;/code&gt; (bool): Is this user age restricted?
+* &lt;code&gt;new_buddy&lt;/code&gt; (bool): Is this user a new buddy relative to the currently logged in user?
+* &lt;code&gt;mutual_friends&lt;/code&gt; (bool): Is this user a mutual relative to the logged in user?
+* &lt;code&gt;capabilities&lt;/code&gt;: Object describing what the user is capable of:
+** &lt;code&gt;push_notifications&lt;/code&gt; (0 or 1): (Probably) Can this user can receive push notifiactions? 
+* &lt;code&gt;hide_presence&lt;/code&gt; (bool): Should this user's online status be hidden?
+* &lt;code&gt;friend_only_notification&lt;/code&gt; (bool): Should this user only see notifications from friends?
+* &lt;code&gt;lite&lt;/code&gt; (bool): Is this a lite user?
+* &lt;code&gt;gamerscore&lt;/code&gt; (int): The user's gamer score
+* &lt;code&gt;level_position&lt;/code&gt; (int): The user's level
+* &lt;code&gt;level_name&lt;/code&gt;: Name of the level this user is at
+* &lt;code&gt;level_points&lt;/code&gt; (int): Points the user has for the current level
+* &lt;code&gt;level_next_points&lt;/code&gt; (int): Points (remaining/required?) for to the next level
+* &lt;code&gt;games&lt;/code&gt;: Array of ''[[Plus+#Game|Game]]'' objects this user plays
+Many elements can be &lt;code&gt;nil&lt;/code&gt;, especially if they are private to the user themselves.
+
+==== ''Game'' ====
+An object describing various information about a game, including it's identifier (key), screenshots (Mobage only), icon, description and a link to the store page for it.
+
+* &lt;code&gt;app_key&lt;/code&gt;: Application identifier string (e.g. &lt;code&gt;PetCat&lt;/code&gt;, &lt;code&gt;PetDog2&lt;/code&gt;, &lt;code&gt;RolandoTwoMTX&lt;/code&gt;)
+* &lt;code&gt;name&lt;/code&gt;: App title displayed to the user
+* &lt;code&gt;icon_url&lt;/code&gt;: App icon URL
+* &lt;code&gt;publisher&lt;/code&gt;: Publisher name
+* &lt;code&gt;catalog_url&lt;/code&gt;: Catalog URL (possibly the link to the game's page on the Plus+ website?)
+* &lt;code&gt;feed_url&lt;/code&gt;: Feed URL (?)
+* &lt;code&gt;app_store_url&lt;/code&gt;: App store URL
+* &lt;code&gt;master_product_id&lt;/code&gt;: Master product ID (?)
+* &lt;code&gt;featured&lt;/code&gt; (bool): If the app is featured or not
+* &lt;code&gt;leaderboards_count&lt;/code&gt; (int): Number of leaderboards
+* &lt;code&gt;achievements_count&lt;/code&gt; (int): Number of possible achievements
+
+==== ''Score'' ====
+A dictionary containing info about a score:
+*&lt;code&gt;score&lt;/code&gt;: The score as a number
+*&lt;code&gt;formatted_score&lt;/code&gt;: The score as displayed to the user
+* &lt;code&gt;user_id&lt;/code&gt;: User the score applies to
+* &lt;code&gt;gamertag&lt;/code&gt;: Gamer name of the user
+* &lt;code&gt;badge_id&lt;/code&gt;: Badge ID of the user
+* &lt;code&gt;rank&lt;/code&gt;: Position on the leaderboard (probably)
+
+=== Routes ===
+In no real order (also for now these are just the routes from ~2010 -- IIRC mobage has more than this):
+
+==== PUT session ====
+Set Apple Push Notification token
+
+* &lt;code&gt;device_token&lt;/code&gt;: APN token
+Response is ignored, but should probably be &lt;code&gt;{success: true}&lt;/code&gt;.
+
+==== GET ping ====
+Really simple request to ping the server. In touch pets, this happens after leaving the game open while the device falls asleep for a while, unsure if this is intended behaviour.
+
+==== POST games/:appkey/leaderboards/:leaderboardIndex/scores ====
+Submit a new high score (does not work for lite accounts)
+
+* &lt;code&gt;level&lt;/code&gt; (int): Leaderboard index
+* &lt;code&gt;score&lt;/code&gt; (int): Score to submit
+* &lt;code&gt;gamertag&lt;/code&gt; (string): The player's gamername
+Response:
+
+* &lt;code&gt;score&lt;/code&gt; ([[Plus+#Score|''Score'']]): The new score
+
+==== GET games/:appkey/leaderboards ====
+Get leaderboards for a game
+
+Query parameters:
+
+* &lt;code&gt;user_id&lt;/code&gt; (optional): Show score for this user ID
+
+Response:
+
+* &lt;code&gt;leaderboards&lt;/code&gt;: A list of objects describing each leaderboard:
+** &lt;code&gt;score&lt;/code&gt; ([[Plus+#Score|''Score'']]): (Presumably) The top score
+** &lt;code&gt;level&lt;/code&gt; (int): Leaderboard index
+** &lt;code&gt;title&lt;/code&gt; (string): Leaderboard title
+** &lt;code&gt;icon_url&lt;/code&gt; (string): Leaderboard icon URL
+
+==== GET games/:appkey/leaderboards/:leaderboardIndex ====
+Get scores for a leaderboard
+
+* &lt;code&gt;relation&lt;/code&gt; (optional enum): Relationship relative to the logged in user; if present, this is &lt;code&gt;friends&lt;/code&gt;
+* &lt;code&gt;user_id&lt;/code&gt; (int): Current user's ID
+* &lt;code&gt;count&lt;/code&gt; (int): Number of scores to retrieve
+* &lt;code&gt;offset&lt;/code&gt; (int): Offset into the number of scores to retrieve, (probably) when ordered from best to worst
+Response:
+
+* &lt;code&gt;leaderboard&lt;/code&gt; (list of [[Plus+#Score|''Score'']]): A list of scores in the leaderboard
+* &lt;code&gt;title&lt;/code&gt; (string): (Probably) Name of the leaderboard
+* &lt;code&gt;level&lt;/code&gt; (int): Leaderboard index
+* &lt;code&gt;icon_url&lt;/code&gt; (string): Leaderboard icon URL
+* &lt;code&gt;user_score&lt;/code&gt; ([[Plus+#Score|''Score'']]): The current user's score (may be optional)
+* &lt;code&gt;offset&lt;/code&gt; (int): Offset into the leaderboard returned
+* &lt;code&gt;total&lt;/code&gt; (int): Number of scores returned
+
+==== GET users/:userId/achievements ====
+Get achievements for this user
+
+* &lt;code&gt;target_app_key&lt;/code&gt; (optional string): The app key of the game to fetch achievements for
+
+==== POST invitations ====
+Invite a user to join Plus+ directly via email
+* &lt;code&gt;email&lt;/code&gt;: Email address
+
+==== DELETE users/:userId/photo ====
+
+==== GET badges ====
+Get the list of public profile icons.
+
+Response:
+
+* &lt;code&gt;list&lt;/code&gt;: List of profile image sections:
+** &lt;code&gt;name&lt;/code&gt; (string): Name of the section
+** &lt;code&gt;badges&lt;/code&gt;: List of badges in section:
+*** &lt;code&gt;id&lt;/code&gt; (int): badge ID
+*** &lt;code&gt;icon_url&lt;/code&gt; (string): badge's icon URL
+
+==== GET users/:userId/badges ====
+Ditto, but probably also shows ones you've earned/unlocked (?)
+
+==== GET session ====
+Check session validity (also returns user's profile info).
+
+* &lt;code&gt;id&lt;/code&gt;: This device's unique identifier
+* &lt;code&gt;device_type&lt;/code&gt;: Type of device being used (e.g. &lt;code&gt;iPhone&lt;/code&gt;)
+* &lt;code&gt;os_version&lt;/code&gt;: Operating system and version in the form &lt;code&gt;{osName}/{osVersion}&lt;/code&gt;
+* &lt;code&gt;locale&lt;/code&gt;: The current language and region setting (e.g. &lt;code&gt;en_GB&lt;/code&gt;)
+* &lt;code&gt;timezone&lt;/code&gt;: Current user's time zone given by &lt;code&gt;[[NSTimeZone defaultTimeZone] description]&lt;/code&gt;
+
+If successful, it responds with the following fields:
+
+* &lt;code&gt;gamertag&lt;/code&gt;: The current gamertag of the user
+* &lt;code&gt;badge_id&lt;/code&gt;: User's current badge ID
+* &lt;code&gt;configuration&lt;/code&gt;: A dictionary containing the current Plus+ configuration (?)
+* &lt;code&gt;messages&lt;/code&gt;: A list of dictionaries describing system messages
+
+==== POST users/:userId/flags ====
+User reporting
+
+* &lt;code&gt;reason&lt;/code&gt;: Message with why the user was reported (formatted as &lt;code&gt;[{gameTitle}][{location}]{message}&lt;/code&gt;)
+
+==== GET users/:userId/buddies ====
+Get relationships with other users
+
+* &lt;code&gt;relation&lt;/code&gt;: Type of relationship
+* &lt;code&gt;offset&lt;/code&gt;: Offset of relationships
+* &lt;code&gt;count&lt;/code&gt;: Number of relationships to return
+
+==== DELETE users/:userId/buddies/:relationshipid ====
+Remove the relationship with another user
+
+==== POST users/:userId/buddies ====
+Create a new relationship
+
+* &lt;code&gt;id&lt;/code&gt;: The ID of the user who the user wants to create a relationship with
+* &lt;code&gt;enemy&lt;/code&gt;: The string &lt;code&gt;"true"&lt;/code&gt; if this should be an enemy relationship or &lt;code&gt;"false"&lt;/code&gt; if this is a friendship
+
+==== GET users/:userId ====
+Get profile information for a given user. Responds with a ''[[Plus+#User|User]]'' object.
+
+==== DELETE session ====
+Log out
+
+==== POST users/update_social_photo ====
+Update this user's social photo (exact purpose unknown)
+
+* &lt;code&gt;social_type&lt;/code&gt;: Probably the type of social media
+
+==== GET users/search ====
+Search for users by user name or email address.
+
+There are two types of user search. The first is searching by gamername with the option for wildcards:
+
+* &lt;code&gt;gamertag&lt;/code&gt; (string): Gamertag of the user to search for. This may include wildcards (&lt;code&gt;*&lt;/code&gt;).
+* &lt;code&gt;offset&lt;/code&gt; (int): Offset into the number of users
+* &lt;code&gt;limit&lt;/code&gt; (int): Max number of users to return
+The other is searching by the SHA1 hash of the user's email address:
+
+* &lt;code&gt;email_hash&lt;/code&gt; (string): The SHA-1 hash of the user's email converted to a hex string
+
+Both have a response of the form:
+
+* &lt;code&gt;list&lt;/code&gt; (list of [[Plus+#User|Users]]): Users matching criteria
+* &lt;code&gt;offset&lt;/code&gt; (int): Offset into the full result list
+* &lt;code&gt;total&lt;/code&gt; (int): Total number of users returned
+
+==== POST users ====
+User registration
+
+==== POST users/validate ====
+Validate first name, last name, username, or email
+
+* &lt;code&gt;field&lt;/code&gt; (string): Name of field to validate, one of &lt;code&gt;gamertag&lt;/code&gt;, &lt;code&gt;email&lt;/code&gt;, &lt;code&gt;first_name&lt;/code&gt; or &lt;code&gt;last_name&lt;/code&gt;
+* &lt;code&gt;value&lt;/code&gt; (string): Value to validate
+
+The success of this request indicates if the value is valid. If it is, the response is a simple success response.
+
+For gamernames, the error response may contain a &lt;code&gt;suggestions&lt;/code&gt; field which contains a list of suggested alternative names.
+
+==== POST users/reset_password ====
+Issue a password reset request
+
+* &lt;code&gt;email&lt;/code&gt;: User's email address
+
+Returns a basic response (only has &lt;code&gt;success&lt;/code&gt; field or error)
+
+==== POST session ====
+Login
+
+==== PUT users/:userId ====
+Update the user's information, possibly also updating their password
+
+* &lt;code&gt;motto&lt;/code&gt; (string): The user's motto (similar to Discord status)
+* &lt;code&gt;email&lt;/code&gt; (string): Email address
+* &lt;code&gt;phone_number&lt;/code&gt; (string): Phone number
+* &lt;code&gt;first_name&lt;/code&gt; (string): First name of the user
+* &lt;code&gt;last_name&lt;/code&gt; (string): Last name of the user
+* &lt;code&gt;fullname_privacy&lt;/code&gt;: If the user's full name should be hidden or not (&lt;code&gt;0&lt;/code&gt; or &lt;code&gt;1&lt;/code&gt;)
+* &lt;code&gt;hide_presence&lt;/code&gt;: If the user's presence (online status) should be hidden or not (&lt;code&gt;0&lt;/code&gt; or &lt;code&gt;1&lt;/code&gt;)
+* &lt;code&gt;friend_only_notification&lt;/code&gt;: Only show notifications from friends
+* &lt;code&gt;badge_id&lt;/code&gt; (optional): Badge ID (public profile image)
+* &lt;code&gt;password&lt;/code&gt; (optional string): Password, only present if changing password
+* &lt;code&gt;password_confirmation&lt;/code&gt; (optional string): Password (again), only present if changing password
+
+==== POST oauth/authorize_new ====
+
+==== POST users/:userId/photo ====
+Upload new friends only profile photo
+
+* &lt;code&gt;foo&lt;/code&gt; (string): always &lt;code&gt;bar&lt;/code&gt;
+* &lt;code&gt;photo&lt;/code&gt; (file): jpeg file with name &lt;code&gt;photo.jpg&lt;/code&gt;
+
+==== GET users/:userId/user_data ====
+Get a list of all keys stored on the Plus+ server (for the iSave feature)
+
+Response:
+
+* &lt;code&gt;datas&lt;/code&gt; (list of strings): List of keys present on the server
+
+==== GET users/:userId/user_data/:key ====
+Get data blob associated with a key. The &lt;code&gt;Content-Type&lt;/code&gt; of the response should be &lt;code&gt;application/octet-stream&lt;/code&gt;.
+
+==== POST users/:userId/user_data ====
+Set a data blob associated with a key
+
+* &lt;code&gt;key&lt;/code&gt; (string): Name of the data blob/its key
+* &lt;code&gt;privacy&lt;/code&gt; (int): Integer denoting if this value can be retrieved publicly, only by friends or only by the user themself (0 = private, 1 = friends, 2 = public)
+* &lt;code&gt;value&lt;/code&gt; (file): Value of the data blob, as a file with the filename set to &lt;code&gt;value&lt;/code&gt;
+
+==== GET games/:appkey ====
+
+==== GET users/:userId/games ====
+
+==== GET games ====
+
+==== GET games/:appid/leaderboards ====
+
+==== GET challenges/:challengeId ====
+
+==== POST challenges ====
+
+==== GET challenges ====
+
+==== PUT challenges/:challengeId ====
+
+==== POST notifications ====
+
+==== PUT store_transactions/:transactionId ====
+
+==== GET store_transactions/:transactionId ====
+
+==== POST store_transactions ====
+
+==== GET user_offers ====
+
+==== PUT user_offers/:offerId ====
+
+==== POST social_accounts/search ====
+
+==== GET users/:userId/social_accounts/:accountId ====
+
+==== DELETE users/:userId/social_accounts/:accountId ====
+
+==== POST users/:userId/social_accounts ====
+Create a social account
+
+==== PUT users/:userId/social_accounts/:accountId ====
+Update account
+
+==== POST users/:userId/social_accounts/add_buddies ====
+
+==== GET user_updates ====
+Fetch user status updates
+
+Response:
+
+* &lt;code&gt;update_interval&lt;/code&gt; (float): Time in seconds to next update
+* &lt;code&gt;online_friends&lt;/code&gt; (list of [[Plus+#user|''Users'']]): A list of the user's friends that are online
+* &lt;code&gt;updates&lt;/code&gt; (list of dicts): A list of dictionaries containing record updates:
+** &lt;code&gt;record_id&lt;/code&gt; (int): Record ID
+** &lt;code&gt;key&lt;/code&gt;: Key
+** &lt;code&gt;data&lt;/code&gt;: Value
+
+== References ==</text>
+      <sha1>nh4lhewwy8mvm1nzlmbouwn5acqq54z</sha1>
+    </revision>
+  </page>
+</mediawiki>
