@@ -6,6 +6,7 @@ Try to automatically clean up a ghidra decompliation to be closer to Objective-C
 import sys
 from pathlib import Path
 import csplit
+import readline
 
 def getargs(snippet):
 	i = snippet.index('(') + 1
@@ -85,7 +86,9 @@ def cleanup(code):
 	return ''.join(new)
 
 def main():
-	print(cleanup(Path(sys.argv[1]).read_text()))
+	string = Path(sys.argv[1]).read_text() if len(sys.argv) > 1 else input(">> ")
+	
+	print(cleanup(string))
 
 if __name__ == "__main__":
 	main()

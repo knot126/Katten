@@ -315,6 +315,7 @@ def make_login_response(user, session):
 		"user_id": user.get_id(),
 	}
 	
+	response["configuration"] = {}
 	response["messages"] = [
 		{
 			"title": "Katten Server",

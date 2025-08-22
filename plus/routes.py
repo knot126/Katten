@@ -280,10 +280,21 @@ def session_get_status(version, appname):
 	
 	try:
 		user = User.current()
+		
+		return {
+			"success": True,
+			"gamertag": user.gamertag,
+			"badge_id": user.badge_id,
+			"configuration": {},
+			"messages": [
+				{
+					"title": "Katten Server",
+					"text": "Welcome to Katten server!",
+					"url": "https://example.com",
+					"alert": True,
+					"web_view": False,
+				}
+			]
+		}
 	except SessionError:
 		plus_error(401, "Invalid session")
-	
-	if user:
-		return {"success": True}
-	else:
-		raise Exception("Not implemented")
