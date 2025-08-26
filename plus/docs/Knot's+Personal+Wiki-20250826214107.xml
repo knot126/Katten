@@ -33,20 +33,19 @@
     <ns>0</ns>
     <id>16</id>
     <revision>
-      <id>179</id>
-      <parentid>178</parentid>
-      <timestamp>2025-07-25T17:42:20Z</timestamp>
+      <id>227</id>
+      <parentid>226</parentid>
+      <timestamp>2025-08-25T18:16:02Z</timestamp>
       <contributor>
         <username>Knot126</username>
         <id>1</id>
       </contributor>
-      <minor/>
-      <comment>/* PUT /user_offers/:offerId */</comment>
-      <origin>179</origin>
+      <comment>/* Network Requests */</comment>
+      <origin>227</origin>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text bytes="17131" sha1="nh4lhewwy8mvm1nzlmbouwn5acqq54z" xml:space="preserve">[[File:PlusPlus Logo.png|thumb|The logo for Plus+]]
-'''Plus+''' was a social gaming network created by ngmoco in 2009 for the iPhone. It closed on 31 March 2013 following the purchase of ngmoco by DeNA, who provided a similar service in eastern countries.
+      <text bytes="20560" sha1="bvxx0yjn2vbe8q8tj21ou95ca0bvctz" xml:space="preserve">[[File:PlusPlus Logo.png|thumb|The logo for Plus+]]
+'''Plus+''' was a social gaming network created by ngmoco in 2009 for the iPhone. It closed on 31 March 2013&lt;ref&gt;It only ''effectively'' closed on this date, since the last Plus+ branded games ended service this day while Mobage branded games continued to use the same backbend.&lt;/ref&gt; following the purchase of ngmoco by DeNA, who provided a similar service in eastern countries.
 
 Its infrastructure seems to have been used for DeNA's attempted entrance into the western market, '''Mobage West''', which acted as the successor to Plus+. Mobage West was reportedly shut down in 2018 with no notice given, though there is seemingly no reliable source for this.
 
@@ -62,8 +61,8 @@ Some network requests to the Plus+ servers at &lt;code&gt;app.plusplus.com&lt;/c
 Note that requests are usually done asynchronously. As an example, here is a decompiled method to ping the Plus+ server:&lt;syntaxhighlight lang="objc"&gt;
 - (void) pingPlusServerWithTarget: (NSObject) target action: (SEL) action
 {
-    NGPlatformAPIOperation *operation = [[NGPlatformAPIOperation alloc] initWithTarget: this action: "_pingCallback:"]; 
-    NSDictionary *user_info = [NSDictionary dictionaryWithObjectsAndKeys: target, @"target", @selector(action), @"action", nil];
+    NGPlatformAPIOperation *operation = [[NGPlatformAPIOperation alloc] initWithTarget: self action: @selector(_pingCallback:)]; 
+    NSDictionary *user_info = [NSDictionary dictionaryWithObjectsAndKeys: target, @"target", action, @"action", nil];
     [operation setUserInfo: user_info];
     [operation setHttpMethod: @"GET"];
     [operation setApiMethod: @"ping"];
@@ -79,19 +78,22 @@ Some more complicated record types are typically initialised by passing a respon
 
 === Misc Details ===
 [[File:Screenshot 20250614 034104.png|thumb|Original headers for Plus+ server, according to archive.org. Notice the use of Phusion Passenger with Ruby on Rails.]]
-The original Plus+ server appears to have been written in Ruby.
+The original Plus+ server appears to have been made with Ruby on Rails.
 
 === Requests ===
-Requests are sent to &lt;code&gt;app.plusplus.com&lt;/code&gt; over HTTP (or HTTPS if the request explicitly specifies itself to be secure). Plus+ constructs the user agent from the app key and version, plus+ sdk version and OS and version: &lt;code&gt;{appKey}/{appVersion} PlusPlus/{plusVersion} {osName}/{osVersion}&lt;/code&gt;.
+Requests are sent to &lt;code&gt;app.plusplus.com&lt;/code&gt; over HTTP(S).
 
-=== Authentication ===
-Most authentication uses OAuth 1.0.
+==== User Agent ====
+Plus+ constructs the user agent from the app key and version, plus+ sdk version and OS and version: &lt;code&gt;{appKey}/{appVersion} PlusPlus/{plusVersion} {osName}/{osVersion}&lt;/code&gt;.
+
+==== Authentication ====
+Authentication with game servers (and with Plus+ itself?) uses OAuth 1.0.
 
 === Responses ===
 Responses usually consist of a JSON (&lt;code&gt;application/json&lt;/code&gt;) or binary plist (&lt;code&gt;application/binary-plist&lt;/code&gt;) document with the root node being a dictionary, where most of the response data is stored. This dictionary always contains the key &lt;code&gt;success&lt;/code&gt;, a &lt;code&gt;'''true'''&lt;/code&gt; or &lt;code&gt;'''false'''&lt;/code&gt; value which is true if the request was successful. When this page gives concrete examples, it assumes JSON is being used, but as long as the http &lt;code&gt;Accept&lt;/code&gt; header contains the MIME type for binary plists they can be used too.
 
 === Error Responses ===
-Error responses (that aren't completely fatal) still give HTTP status &lt;code&gt;200 OK&lt;/code&gt; (or &lt;code&gt;304 Not Modified&lt;/code&gt; when using &lt;code&gt;ETag&lt;/code&gt;s), but will have success set to &lt;code&gt;false&lt;/code&gt; in the response body, an &lt;code&gt;error&lt;/code&gt; field containing a numerical error code, and an &lt;code&gt;error_msg&lt;/code&gt; string.&lt;ref&gt;https://web.archive.org/web/20100428132215im_/http://app.plusplus.com/users/update_password&lt;/ref&gt;&lt;ref&gt;https://web.archive.org/web/20131120015720im_/http://app.mobage.com:80/1/Bahamut-Android/session&lt;/ref&gt;&lt;ref&gt;https://web.archive.org/web/20150807000506im_/http://app.mobage.com:80/users/2903f0ce1bb30fa45713d75f0573b8c1a55625c6/opt_out&lt;/ref&gt; For example:&lt;syntaxhighlight lang="json"&gt;
+Error responses (that aren't completely fatal) still give HTTP status &lt;code&gt;200 OK&lt;/code&gt; (or &lt;code&gt;304 Not Modified&lt;/code&gt; when caching is used), but will have success set to &lt;code&gt;false&lt;/code&gt; in the response body, an &lt;code&gt;error&lt;/code&gt; field containing a numerical error code, and an &lt;code&gt;error_msg&lt;/code&gt; string.&lt;ref&gt;https://web.archive.org/web/20100428132215im_/http://app.plusplus.com/users/update_password&lt;/ref&gt;&lt;ref&gt;https://web.archive.org/web/20131120015720im_/http://app.mobage.com:80/1/Bahamut-Android/session&lt;/ref&gt;&lt;ref&gt;https://web.archive.org/web/20150807000506im_/http://app.mobage.com:80/users/2903f0ce1bb30fa45713d75f0573b8c1a55625c6/opt_out&lt;/ref&gt; For example:&lt;syntaxhighlight lang="json"&gt;
 {
     "success": false,
     "error": 404,
@@ -101,8 +103,64 @@ Error responses (that aren't completely fatal) still give HTTP status &lt;code&g
 
 === Common Data Types ===
 
+==== ''Achievement'' ====
+An achievement for a game
+
+*&lt;code&gt;index&lt;/code&gt; (integer, default 0): Index of the achievement
+*&lt;code&gt;points&lt;/code&gt; (integer, default 0): Number of points the achievement awards
+*&lt;code&gt;name&lt;/code&gt; (string): Name
+*&lt;code&gt;category&lt;/code&gt; (string): Category
+*&lt;code&gt;description&lt;/code&gt; (string): Explanation or description of the achievement
+*&lt;code&gt;icon_url&lt;/code&gt; (string): URL for the achievement's icon
+*&lt;code&gt;unlocked&lt;/code&gt; (boolean): If the achievement is unlocked
+
+==== ''Challenge'' ====
+Challenge from a user to another user
+
+* &lt;code&gt;id&lt;/code&gt; (string): 
+* &lt;code&gt;state&lt;/code&gt; (string): 
+* &lt;code&gt;data&lt;/code&gt; (data): 
+* &lt;code&gt;users&lt;/code&gt; (list of [[Plus+#User|Users]]): All users involved in the challenge
+* &lt;code&gt;from_user_id&lt;/code&gt; (integer): The person who sent this challenge
+* &lt;code&gt;turn_user_id&lt;/code&gt; (integer): The user whose turn it is to complete this challenge
+
+==== ''Game'' ====
+Information about a Plus+ game
+
+* &lt;code&gt;app_key&lt;/code&gt;: Application identifier string (e.g. &lt;code&gt;PetCat&lt;/code&gt;, &lt;code&gt;PetDog2&lt;/code&gt;, &lt;code&gt;RolandoTwoMTX&lt;/code&gt;)
+* &lt;code&gt;name&lt;/code&gt;: App title displayed to the user
+* &lt;code&gt;icon_url&lt;/code&gt;: App icon URL
+* &lt;code&gt;publisher&lt;/code&gt;: Publisher name
+* &lt;code&gt;catalog_url&lt;/code&gt;: Catalog URL (possibly the link to the game's page on the Plus+ website?)
+* &lt;code&gt;feed_url&lt;/code&gt;: Feed URL (?)
+* &lt;code&gt;app_store_url&lt;/code&gt;: App store URL
+* &lt;code&gt;master_product_id&lt;/code&gt;: Master product ID (?)
+* &lt;code&gt;featured&lt;/code&gt; (bool): If the app is featured or not
+* &lt;code&gt;leaderboards_count&lt;/code&gt; (int): Number of leaderboards
+* &lt;code&gt;achievements_count&lt;/code&gt; (int): Number of possible achievements
+
+==== ''Score'' ====
+A score on a leaderboard
+*&lt;code&gt;score&lt;/code&gt;: The score as a number
+*&lt;code&gt;formatted_score&lt;/code&gt;: The score as displayed to the user
+* &lt;code&gt;user_id&lt;/code&gt;: User the score applies to
+* &lt;code&gt;gamertag&lt;/code&gt;: Gamer name of the user
+* &lt;code&gt;badge_id&lt;/code&gt;: Badge ID of the user
+* &lt;code&gt;rank&lt;/code&gt;: Position on the leaderboard (probably)
+
+==== ''Social Account'' ====
+Linked social media account for a user
+
+* &lt;code&gt;id&lt;/code&gt;: ID
+* &lt;code&gt;social_type&lt;/code&gt;: ?
+* &lt;code&gt;social_id&lt;/code&gt;: ?
+* &lt;code&gt;photo_url&lt;/code&gt; (string): ?
+* &lt;code&gt;tokens&lt;/code&gt; (dict):
+** &lt;code&gt;token&lt;/code&gt;: Game auth token
+** &lt;code&gt;plus_token&lt;/code&gt;: Plus auth token
+
 ==== ''User'' ====
-An object/dictionary containing info about a given user:
+Information about a user
 
 * &lt;code&gt;user_id&lt;/code&gt; (int): User ID
 * &lt;code&gt;gamertag&lt;/code&gt;: Display name (gamername)
@@ -119,7 +177,7 @@ An object/dictionary containing info about a given user:
 * &lt;code&gt;age_restricted&lt;/code&gt; (bool): Is this user age restricted?
 * &lt;code&gt;new_buddy&lt;/code&gt; (bool): Is this user a new buddy relative to the currently logged in user?
 * &lt;code&gt;mutual_friends&lt;/code&gt; (bool): Is this user a mutual relative to the logged in user?
-* &lt;code&gt;capabilities&lt;/code&gt;: Object describing what the user is capable of:
+* &lt;code&gt;capabilities&lt;/code&gt; (''User Capabilities'' object): Object describing what the user is capable of:
 ** &lt;code&gt;push_notifications&lt;/code&gt; (0 or 1): (Probably) Can this user can receive push notifiactions? 
 * &lt;code&gt;hide_presence&lt;/code&gt; (bool): Should this user's online status be hidden?
 * &lt;code&gt;friend_only_notification&lt;/code&gt; (bool): Should this user only see notifications from friends?
@@ -132,29 +190,12 @@ An object/dictionary containing info about a given user:
 * &lt;code&gt;games&lt;/code&gt;: Array of ''[[Plus+#Game|Game]]'' objects this user plays
 Many elements can be &lt;code&gt;nil&lt;/code&gt;, especially if they are private to the user themselves.
 
-==== ''Game'' ====
-An object describing various information about a game, including it's identifier (key), screenshots (Mobage only), icon, description and a link to the store page for it.
+==== ''User Offer'' ====
 
-* &lt;code&gt;app_key&lt;/code&gt;: Application identifier string (e.g. &lt;code&gt;PetCat&lt;/code&gt;, &lt;code&gt;PetDog2&lt;/code&gt;, &lt;code&gt;RolandoTwoMTX&lt;/code&gt;)
-* &lt;code&gt;name&lt;/code&gt;: App title displayed to the user
-* &lt;code&gt;icon_url&lt;/code&gt;: App icon URL
-* &lt;code&gt;publisher&lt;/code&gt;: Publisher name
-* &lt;code&gt;catalog_url&lt;/code&gt;: Catalog URL (possibly the link to the game's page on the Plus+ website?)
-* &lt;code&gt;feed_url&lt;/code&gt;: Feed URL (?)
-* &lt;code&gt;app_store_url&lt;/code&gt;: App store URL
-* &lt;code&gt;master_product_id&lt;/code&gt;: Master product ID (?)
-* &lt;code&gt;featured&lt;/code&gt; (bool): If the app is featured or not
-* &lt;code&gt;leaderboards_count&lt;/code&gt; (int): Number of leaderboards
-* &lt;code&gt;achievements_count&lt;/code&gt; (int): Number of possible achievements
-
-==== ''Score'' ====
-A dictionary containing info about a score:
-*&lt;code&gt;score&lt;/code&gt;: The score as a number
-*&lt;code&gt;formatted_score&lt;/code&gt;: The score as displayed to the user
-* &lt;code&gt;user_id&lt;/code&gt;: User the score applies to
-* &lt;code&gt;gamertag&lt;/code&gt;: Gamer name of the user
-* &lt;code&gt;badge_id&lt;/code&gt;: Badge ID of the user
-* &lt;code&gt;rank&lt;/code&gt;: Position on the leaderboard (probably)
+* &lt;code&gt;id&lt;/code&gt; (int): ?
+* &lt;code&gt;name&lt;/code&gt; (string): ?
+* &lt;code&gt;payload&lt;/code&gt; (string): ?
+* &lt;code&gt;state&lt;/code&gt; (string; &lt;code&gt;new&lt;/code&gt; or &lt;code&gt;completed&lt;/code&gt;): ? 
 
 === Routes ===
 In no real order (also for now these are just the routes from ~2010 -- IIRC mobage has more than this):
@@ -169,7 +210,7 @@ Response is ignored, but should probably be &lt;code&gt;{success: true}&lt;/code
 Really simple request to ping the server. In touch pets, this happens after leaving the game open while the device falls asleep for a while, unsure if this is intended behaviour.
 
 ==== POST games/:appkey/leaderboards/:leaderboardIndex/scores ====
-Submit a new high score (does not work for lite accounts)
+Submit a new high score. 
 
 * &lt;code&gt;level&lt;/code&gt; (int): Leaderboard index
 * &lt;code&gt;score&lt;/code&gt; (int): Score to submit
@@ -254,14 +295,14 @@ If successful, it responds with the following fields:
 ==== POST users/:userId/flags ====
 User reporting
 
-* &lt;code&gt;reason&lt;/code&gt;: Message with why the user was reported (formatted as &lt;code&gt;[{gameTitle}][{location}]{message}&lt;/code&gt;)
+* &lt;code&gt;reason&lt;/code&gt; (string): Message with why the user was reported (formatted as &lt;code&gt;[{gameTitle}][{location}]{message}&lt;/code&gt;)
 
 ==== GET users/:userId/buddies ====
 Get relationships with other users
 
-* &lt;code&gt;relation&lt;/code&gt;: Type of relationship
-* &lt;code&gt;offset&lt;/code&gt;: Offset of relationships
-* &lt;code&gt;count&lt;/code&gt;: Number of relationships to return
+* &lt;code&gt;relation&lt;/code&gt; (string): Type of relationship; this is one of &lt;code&gt;enemies&lt;/code&gt;, &lt;code&gt;followers&lt;/code&gt;, or &lt;code&gt;friends&lt;/code&gt;
+* &lt;code&gt;offset&lt;/code&gt; (int): Offset of relationships
+* &lt;code&gt;count&lt;/code&gt; (int): Number of relationships to return
 
 ==== DELETE users/:userId/buddies/:relationshipid ====
 Remove the relationship with another user
@@ -304,6 +345,8 @@ Both have a response of the form:
 ==== POST users ====
 User registration
 
+*
+
 ==== POST users/validate ====
 Validate first name, last name, username, or email
 
@@ -322,7 +365,36 @@ Issue a password reset request
 Returns a basic response (only has &lt;code&gt;success&lt;/code&gt; field or error)
 
 ==== POST session ====
-Login
+Login to a user account using either a username and password or an existing session token.
+{| class="wikitable"
+|+Fields required if logging in with...
+!Username and password
+|
+*&lt;code&gt;gamertag&lt;/code&gt; (string): Username
+* &lt;code&gt;password&lt;/code&gt; (string): Password
+|-
+!Session token
+|
+* &lt;code&gt;auth_token&lt;/code&gt; (string): Existing session token
+|}
+* &lt;code&gt;id&lt;/code&gt; (string): Unique device identifier (UDID); &lt;code&gt;[[UIDevice currentDevice] uniqueIdentifier]&lt;/code&gt;
+* &lt;code&gt;device_type&lt;/code&gt; (string): Device model name; &lt;code&gt;[[UIDevice currentDevice] model]&lt;/code&gt;
+* &lt;code&gt;os_version&lt;/code&gt; (string): Device OS version; &lt;code&gt;[[UIDevice currentDevice] systemVersion]&lt;/code&gt;
+* &lt;code&gt;locale&lt;/code&gt; (string): Locale (e.g. spoken language and formats) name
+* &lt;code&gt;timezone&lt;/code&gt; (string): Device's default time zone
+* &lt;code&gt;overwrite_game_data&lt;/code&gt; (optional int): unknown
+A successful login responds with:
+
+* &lt;code&gt;auth_token&lt;/code&gt; (string): The new session token, if changed
+* &lt;code&gt;oauth_token&lt;/code&gt; (string): OAuth 1.0 user agent token
+* &lt;code&gt;oauth_secret&lt;/code&gt; (string): OAuth 1.0 user agent secret
+* &lt;code&gt;profile&lt;/code&gt; (optional [[Plus+#User|''User'']]): The user's profile information
+* &lt;code&gt;configuration&lt;/code&gt; (dictionary): Platform configuration options
+* &lt;code&gt;messages&lt;/code&gt; (list of system messages): System messages to be displayed to the user
+
+====== Notes ======
+
+* If the &lt;code&gt;configuration&lt;/code&gt; is missing, system messages won't be parsed.
 
 ==== PUT users/:userId ====
 Update the user's information, possibly also updating their password
@@ -365,10 +437,25 @@ Set a data blob associated with a key
 * &lt;code&gt;value&lt;/code&gt; (file): Value of the data blob, as a file with the filename set to &lt;code&gt;value&lt;/code&gt;
 
 ==== GET games/:appkey ====
+Retrieve information about a game
+
+Response:
+
+* &lt;code&gt;game&lt;/code&gt; ([[Plus+#Game|''Game'']]): The game's info
 
 ==== GET users/:userId/games ====
+Retrieve all games a user plays
+
+Response:
+
+* &lt;code&gt;games&lt;/code&gt; (list of ''[[Plus+#Game|Games]]''): List of objects containing game information
 
 ==== GET games ====
+Get a list of all games registered on the Plus+ server
+
+Response:
+
+* &lt;code&gt;games&lt;/code&gt; (list of [[Plus+#Game|''Games'']]): List of objects containing game information
 
 ==== GET games/:appid/leaderboards ====
 
@@ -405,6 +492,7 @@ Create a social account
 Update account
 
 ==== POST users/:userId/social_accounts/add_buddies ====
+(Probably) search for buddies on social media
 
 ==== GET user_updates ====
 Fetch user status updates
@@ -419,7 +507,7 @@ Response:
 ** &lt;code&gt;data&lt;/code&gt;: Value
 
 == References ==</text>
-      <sha1>nh4lhewwy8mvm1nzlmbouwn5acqq54z</sha1>
+      <sha1>bvxx0yjn2vbe8q8tj21ou95ca0bvctz</sha1>
     </revision>
   </page>
 </mediawiki>
