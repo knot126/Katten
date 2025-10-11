@@ -16,9 +16,9 @@ Model = Base
 
 bp = Blueprint(__name__, __name__)
 
-@bp.teardown_appcontext
-def shutdown_db(exception=None):
-	session.remove()
+# @bp.teardown_appcontext
+# def shutdown_db(exception=None):
+# 	session.remove()
 
 def find(cls, field, value):
 	return session.execute(select(cls).where(getattr(cls, field) == value)).all()

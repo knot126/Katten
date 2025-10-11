@@ -1,15 +1,17 @@
-from persist import Persistent
+from database import Model, Column, String, Integer
 from utils import *
-from flask import request
+from flask import Blueprint, request
 
-bp = Blueprint(__name__, __name__)
+bp = Blueprint("flags", "flags")
 
-class Flag(Persistent):
-	def on_init(self):
-		self.user_id = 0
-		self.reported_user = 0
-		self.report_time = unixtime()
-		self.reason = ""
+class Flag(Model):
+	__tablename__ = "flags"
+	
+	id = Column(Integer, primary_key=True)
+	user_id = Column(Integer)
+	reported_user = Column(Integer)
+	report_time = Column(Integer, nullable=False)
+	reason = Column(String(2000), nullable=False)
 
 @bp.put("/<int:version>/<appname>/users/<int:user_id>/flags")
 def put_user_flag(version, appname, user_id):
