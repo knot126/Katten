@@ -3,6 +3,8 @@
 PLUS_MONGO_URI = "mongodb://localhost:27017"
 PLUS_DEFAULT_DB = "Plus"
 
+PLUS_DATABASE_URI = "sqlite://"
+
 PLUS_SESSION_EXPIRY = False
 PLUS_SESSION_TIME = 60 * 60 * 24 * 180 # seconds
 PLUS_GAMERTAG_MIN_LENGTH = 4

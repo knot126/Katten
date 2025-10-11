@@ -5,6 +5,8 @@ https://en.wikipedia.org/wiki/Active_record_pattern.
 
 This provides a standard, object oriented interface for objects that will be
 stored in the database and makes them a lot nicer to work with.
+
+DEPRECATED. Trying to move to SQLAlchemy
 """
 
 from config import *

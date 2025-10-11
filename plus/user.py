@@ -4,6 +4,7 @@ Account and user related stuff
 
 from config import *
 from persist import Persistent
+from database import Model
 from utils import *
 from flask import request
 import time
@@ -55,8 +56,6 @@ class User(Persistent):
 	def on_load(self):
 		# Some earlier versions had age restricted set to a different type
 		self.age_restricted = bool(self.age_restricted)
-		
-		
 		
 		pass
 	
