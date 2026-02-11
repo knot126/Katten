@@ -18,3 +18,4 @@ if "--initial-setup" in argv:
 app = Flask(__name__)
 app.register_blueprint(routes.bp)
 app.register_blueprint(flags.bp)
+app.register_blueprint(asset.bp)
