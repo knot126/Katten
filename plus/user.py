@@ -5,21 +5,21 @@ Account and user related stuff
 from config import *
 # from persist import Persistent
 import database
-from database import Model, Column, String, Integer, Boolean, ForeignKey, relationship
+from database import NoResultFound, Model, Column, String, Integer, Boolean, ForeignKey, relationship
 from asset import Asset, upload
 from utils import *
-from flask import request
+from flask import Blueprint, request
 import time
 import password
 import secrets
 import re
 import base64
 import hashlib
-# from collections import namedtuple
 
 import game
 import asset
 
+from session import Session
 from game import Game
 
 def validate_gamertag(gamertag):
@@ -67,25 +67,94 @@ class User(Model):
 	games = relationship("Game", secondary=game.user_games, back_populates="players")
 	
 	def __init__(self, gamertag, password, email, badge_id, first_name="", last_name="", age_restricted=False, opt_in=False):
-		if not validate_gamertag(gamertag): raise ValidationError("Invalid gamer tag!")
-		if not validate_email(email): raise ValidationError("Invalid email!")
-		if not validate_password(password): raise ValidationError("Invalid password!")
-		
-		self.gamertag = gamertag
+		self.set_gamertag(gamertag)
+		self.set_password(password)
+		self.set_email(email)
 		self.score = 0
 		self.level = 0
 		self.badge_id = badge_id
 		self.photo_id = None
 		self.motto = ""
-		self.email = email
-		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest()
 		self.phone_number = ""
-		self.password = password.hash(password)
 		self.first_name = first_name
 		self.last_name = last_name
 		self.opt_in = opt_in
 		self.fullname_privacy = False
 		self.age_restricted = age_restricted
+	
+	def set_gamertag(self, gamertag):
+		if not validate_gamertag(gamertag): raise ValidationError("Invalid gamer tag!")
+		if database.exists(self.__class__, "gamertag", gamertag): raise UserExistsError("That username is already taken!")
+		self.gamertag = gamertag
+	
+	def set_password(self, password):
+		if not validate_password(password): raise ValidationError("Invalid password!")
+		self.password = password.hash(password)
+	
+	def set_email(self, email):
+		if not validate_email(email): raise ValidationError("Invalid email!")
+		self.email = email
+		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest()
+	
+	def get_profile(self, private=False):
+		result = {
+			"user_id": self.id,
+			"gamertag": self.gamertag,
+			"badge_id": self.badge_id,
+			"photo_url": None, # It's not really ready yet...
+			"motto": self.motto,
+			"email_hash": self.email_hash,
+			"first_name": self.first_name,
+			"lite": False, # TODO We don't support lite accounts yet :(
+			"capabilities": {"push_notifications": 0},
+			"gamerscore": self.score,
+			"level_position": self.level,
+			
+			# Junk data
+			"level_name": "Trogdor",
+			"level_points": 350,
+			"level_next_points": 1000,
+		}
+		
+		if private:
+			result['email'] = self.email
+			result['phone_number'] = self.phone_number
+			result['password'] = self.password
+			result['last_name'] = self.last_name
+			result['opt_in'] = False
+			result['fullname_privacy'] = self.fullname_privacy
+			result['age_restricted'] = self.age_restricted
+		else:
+			result['last_name'] = self.last_name if not self.fullname_privacy else ""
+		
+		return result
+	
+	def check_password(self, cand):
+		try:
+			return password.verify(self.password, cand)
+		except password.IncorrectPasswordError:
+			return False
+	
+	@classmethod
+	def current(self):
+		return Session.current().user
+	
+	@classmethod
+	def login(self, gamertag, password):
+		try:
+			user = database.find_one(self, "gamertag", gamertag)
+			
+			if user.check_password(password):
+				session = Session(user)
+				database.add(session)
+				return user, session
+			else:
+				raise LoginError("Your username wasn't found or your password wasn't valid.")
+		except:
+			raise LoginError("Your username wasn't found or your password wasn't valid.")
+	
+
+bp = Blueprint(__name__, __name__)
 
 """
 class User_old(Persistent):

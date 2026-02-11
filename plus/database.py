@@ -7,6 +7,7 @@ from flask import Blueprint
 from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base, relationship
+from sqlalchemy.exc import NoResultFound
 
 engine = create_engine(PLUS_DATABASE_URI)
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
@@ -27,6 +28,9 @@ def shutdown(exception=None):
 
 def find(cls, field, value):
 	return session.execute(select(cls).where(getattr(cls, field) == value)).all()
+
+def find_one(cls, feild, value):
+	return session.execute(select(cls).where(getattr(cls, field) == value)).one()
 
 def exists(cls, field, value):
 	return session.query.filter(getattr(cls, field) == value).one_or_none() != None
