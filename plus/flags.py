@@ -6,7 +6,7 @@ from time import time
 from utils import *
 from flask import Blueprint, request
 
-bp = Blueprint("flags", "flags")
+bp = Blueprint(__name__, __name__)
 
 class Flag(Model):
 	__tablename__ = "flags"

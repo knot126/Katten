@@ -51,46 +51,7 @@ def get_games(version, appname):
 def get_user_games(version, appname, user_id):
 	return list_games(appname)
 
-# Badges
-def list_badges():
-	# TODO: Allow to organise badges into groups
-	badge_files = sorted(os.listdir("static/badges"))
-	badges = []
-	
-	for f in badge_files:
-		badges.append({"id": f, "icon_url": f"http://{request.host}/static/badges/{f}"})
-	
-	return {
-		"success": True,
-		"list": [
-			{
-				"name": "General",
-				"badges": badges,
-			}
-		],
-	}
-
-@bp.get("/<int:version>/<appname>/badges")
-def badges(version, appname):
-	return list_badges()
-
-@bp.get("/<int:version>/<appname>/users/<int:user_id>/badges")
-def user_badges(version, appname, user_id):
-	return list_badges()
-
 # Users
-@bp.post("/<int:version>/<appname>/users")
-def users_register(version, appname):
-	form_dict = request.form.to_dict()
-	user_info = {}
-	
-	for k in form_dict:
-		if k.startswith("user["):
-			user_info[k[5:-1]] = form_dict[k]
-	
-	result = User.register(user_info)
-	
-	return make_login_response(result.user, result.session)
 
 @bp.put("/<int:version>/<appname>/users/<int:user_id>")
 def users_update(version, appname, user_id):

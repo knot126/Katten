@@ -135,6 +135,11 @@ class User(Model):
 		except password.IncorrectPasswordError:
 			return False
 	
+	def create_session(self):
+		session = Session(self)
+		database.add(session)
+		return session
+	
 	@classmethod
 	def current(self):
 		return Session.current().user
@@ -143,10 +148,8 @@ class User(Model):
 	def login(self, gamertag, password):
 		try:
 			user = database.find_one(self, "gamertag", gamertag)
-			
 			if user.check_password(password):
-				session = Session(user)
-				database.add(session)
+				session = self.create_session()
 				return user, session
 			else:
 				raise LoginError("Your username wasn't found or your password wasn't valid.")
@@ -155,6 +158,47 @@ class User(Model):
 	
 
 bp = Blueprint(__name__, __name__)
+
+@bp.post("/<int:version>/<appname>/users")
+def users_register(version, appname):
+	form_dict = request.form.to_dict()
+	info = {}
+	
+	for k in form_dict:
+		if k.startswith("user["):
+			info[k[5:-1]] = form_dict[k]
+	
+	# result = User.register(user_info)
+	
+	if info["password"] != info["password_confirmation"]:
+		plus_error(400, "Passwords do not match")
+	
+	try:
+		user = User(info["gamertag"], info["password"], info["email"], info.get("first_name", ""), info.get("last_name", ""))
+	except ValidationError as e:
+		plus_error(400, e.msg)
+	except UserExistsError as e:
+		plus_error(400, "User already exists")
+	except Exception as e:
+		plus_error(500, "Internal server error")
+	
+	database.add(user)
+	session = user.create_session()
+	database.commit()
+	
+	return make_login_response(user, session)
+
+@bp.get("/<int:version>/<appname>/user_updates")
+def get_user_updates(version, appname):
+	user = User.current()
+	
+	# Yet another mostly filler response...
+	return {
+		"success": True,
+		"online_friends": [],
+		"updates": [],
+		"update_interval": PLUS_USER_UPDATE_INTERVAL,
+	}
 
 """
 class User_old(Persistent):

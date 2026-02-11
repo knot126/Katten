@@ -41,6 +41,36 @@ class Session(Model):
 
 bp = Blueprint(__name__, __name__)
 
+@bp.get("/<int:version>/<appname>/session")
+def session_get_status(version, appname):
+	"""
+	Get the status of the session for the given device and game.
+	"""
+	
+	from system_messages import SystemMessage
+	
+	try:
+		session = Session.current()
+		
+		return {
+			"success": True,
+			"gamertag": session.user.gamertag,
+			"badge_id": session.user.badge_id,
+			"configuration": {},
+			"messages": SystemMessage.current_messages(),
+			# "messages": [
+			# 	{
+			# 		"title": "Katten Server",
+			# 		"text": "Welcome to Katten server!",
+			# 		"url": "https://example.com",
+			# 		"alert": True,
+			# 		"web_view": False,
+			# 	}
+			# ]
+		}
+	except SessionError:
+		plus_error(401, "Invalid session")
+
 @bp.put("/<int:version>/<appname>/session")
 def put_device_token(version, appname):
 	# Not really important to do anything given we don't re-implement
@@ -48,3 +78,4 @@ def put_device_token(version, appname):
 	return {
 		"success": True,
 	}
+
