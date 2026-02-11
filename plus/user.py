@@ -3,8 +3,10 @@ Account and user related stuff
 """
 
 from config import *
-from persist import Persistent
-from database import Model
+# from persist import Persistent
+import database
+from database import Model, Column, String, Integer, Boolean, ForeignKey, relationship
+from asset import Asset, upload
 from utils import *
 from flask import request
 import time
@@ -13,7 +15,12 @@ import secrets
 import re
 import base64
 import hashlib
-from collections import namedtuple
+# from collections import namedtuple
+
+import game
+import asset
+
+from game import Game
 
 def validate_gamertag(gamertag):
 	return re.match(r"[a-zA-Z0-9]{" + str(PLUS_GAMERTAG_MIN_LENGTH) + "," + str(PLUS_GAMERTAG_MAX_LENGTH) + r"}", gamertag) != None
@@ -35,9 +42,53 @@ class EmailUsedError(Exception): pass # The email is already used by someone els
 class LoginError(Exception): pass # Errors while logging in
 class SessionError(Exception): pass # When a session does not exist
 
-UserAndSession = namedtuple("UserAndSession", "user session")
+# UserAndSession = namedtuple("UserAndSession", "user session")
 
-class User(Persistent):
+class User(Model):
+	__tablename__ = "users"
+	
+	id = Column(Integer, primary_key=True)
+	gamertag = Column(String(PLUS_GAMERTAG_MAX_LENGTH), nullable=False, unique=True)
+	score = Column(Integer, nullable=False)
+	level = Column(Integer, nullable=False)
+	badge_id = Column(Integer, nullable=False)
+	photo_id = Column(Integer, ForeignKey("assets.id"))
+	motto = Column(String)
+	email = Column(String, nullable=False, unique=True)
+	email_hash = Column(String, nullable=False)
+	phone_number = Column(String)
+	password = Column(String, nullable=False)
+	first_name = Column(String, nullable=False)
+	last_name = Column(String, nullable=False)
+	opt_in = Column(Boolean, nullable=False)
+	fullname_privacy = Column(Boolean, nullable=False)
+	age_restricted = Column(Boolean, nullable=False)
+	
+	games = relationship("Game", secondary=game.user_games, back_populates="players")
+	
+	def __init__(self, gamertag, password, email, badge_id, first_name="", last_name="", age_restricted=False, opt_in=False):
+		if not validate_gamertag(gamertag): raise ValidationError("Invalid gamer tag!")
+		if not validate_email(email): raise ValidationError("Invalid email!")
+		if not validate_password(password): raise ValidationError("Invalid password!")
+		
+		self.gamertag = gamertag
+		self.score = 0
+		self.level = 0
+		self.badge_id = badge_id
+		self.photo_id = None
+		self.motto = ""
+		self.email = email
+		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest()
+		self.phone_number = ""
+		self.password = password.hash(password)
+		self.first_name = first_name
+		self.last_name = last_name
+		self.opt_in = opt_in
+		self.fullname_privacy = False
+		self.age_restricted = age_restricted
+
+"""
+class User_old(Persistent):
 	def on_init(self):
 		self.gamertag = ""
 		self.badge_id = ""
@@ -144,9 +195,7 @@ class User(Persistent):
 	
 	@classmethod
 	def register(self, user_info):
-		"""
-		Try to register as the given user.
-		"""
+		"Try to register as the given user."
 		
 		gamertag = user_info["gamertag"]
 		email = user_info["email"]
@@ -182,9 +231,7 @@ class User(Persistent):
 	
 	@classmethod
 	def login(self, gamertag, password):
-		"""
-		Try to log in as the given user. Returns the new session.
-		"""
+		"Try to log in as the given user. Returns the new session."
 		
 		user = self.lookup({"gamertag": gamertag})
 		
@@ -202,12 +249,12 @@ class User(Persistent):
 	
 	@classmethod
 	def current(self, throw = True):
-		"""
+		" ""
 		Get the current user
 		
 		throw: If an exception should be raised instead of returning None when
 		there is no current user.
-		"""
+		" ""
 		
 		session = UserSession.current(throw)
 		
@@ -215,7 +262,9 @@ class User(Persistent):
 			return None
 		
 		return session.get_user()
+"""
 
+"""
 class UserSession(Persistent):
 	def on_init(self):
 		self.token = None
@@ -223,9 +272,9 @@ class UserSession(Persistent):
 		self.expire = int(time.time()) + PLUS_SESSION_TIME
 	
 	def validate(self):
-		"""
+		""
 		Make sure this session is allowable.
-		"""
+		""
 		
 		if (self.token == None or self.user == None or (PLUS_SESSION_EXPIRY and self.expire < int(time.time()))):
 			self.delete()
@@ -234,9 +283,9 @@ class UserSession(Persistent):
 		return True
 	
 	def get_user(self):
-		"""
+		""
 		Get the user associated with the session
-		"""
+		""
 		
 		try:
 			return User(self.user)
@@ -244,17 +293,17 @@ class UserSession(Persistent):
 			return None
 	
 	def get_token(self):
-		"""
+		""
 		Get the login token
-		"""
+		""
 		
 		return self.token
 	
 	@classmethod
 	def new(self, user):
-		"""
+		""
 		Make a new session for the given user
-		"""
+		""
 		
 		session = self()
 		session.token = secrets.token_hex(PLUS_SESSION_TOKEN_BITS >> 3).upper()
@@ -265,9 +314,9 @@ class UserSession(Persistent):
 	
 	@classmethod
 	def current_(self):
-		"""
+		""
 		Get the current session, if still valid, otherwise return None
-		"""
+		""
 		
 		try:
 			token = request.authorization.get("oauth_token", None)
@@ -289,10 +338,10 @@ class UserSession(Persistent):
 	
 	@classmethod
 	def current(self, throw=True):
-		"""
+		""
 		Same as current_() but with the option to throw an exception instead
 		of reutrning None.
-		"""
+		""
 		
 		session = self.current_()
 		
@@ -300,11 +349,11 @@ class UserSession(Persistent):
 			raise SessionError("There is no current session")
 		
 		return session
+"""
 
+"""
 def make_login_response(user, session):
-	"""
-	Make a login response given the user and session
-	"""
+	"Make a login response given the user and session"
 	
 	response = {
 		"success": True,
@@ -329,9 +378,7 @@ def make_login_response(user, session):
 	return response
 
 class UserAppDataEntry(Persistent):
-	"""
-	A key->value data pair stored in Plus+ for use by games.
-	"""
+	"A key->value data pair stored in Plus+ for use by games."
 	
 	def on_init(self):
 		self.game = None
@@ -368,3 +415,4 @@ class UserAppDataEntry(Persistent):
 		return base64.b64decode(entry.value)
 
 __all__ = list(globals().keys())
+"""

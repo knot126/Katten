@@ -27,7 +27,11 @@ class Asset(Model):
 def upload(data):
 	hash = sha256(content).hexdigest()
 	
-	database.exists(Asset, "hash", )
+	if database.exists(Asset, "hash", hash):
+		asset = database.find(Asset, "hash", hash)[0]
+		asset.inc()
+	else:
+		asset = Asset(data)
+		session.add(asset)
 	
-	asset = Asset(data)
-	session.add()
+	return asset

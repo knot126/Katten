@@ -21,4 +21,4 @@ def sha1(d):
 def unixtime():
 	return int(time.time())
 
-__all__ = list(globals().keys())
+__all__ = ["plus_error", "sha1", "unixtime"]
