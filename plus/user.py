@@ -3,12 +3,14 @@ Account and user related stuff
 """
 
 from config import *
+from utils import *
 # from persist import Persistent
 import database
 from database import NoResultFound, Model, Column, String, Integer, Boolean, ForeignKey, relationship
 from asset import Asset, upload
 from utils import *
 from flask import Blueprint, request
+import traceback
 import time
 import password
 import secrets
@@ -92,14 +94,17 @@ class User(Model):
 		if database.exists(self.__class__, "gamertag", gamertag): raise UserExistsError("That username is already taken!")
 		self.gamertag = gamertag
 	
-	def set_password(self, password):
-		if not validate_password(password): raise ValidationError("Invalid password!")
-		self.password = password.hash(password)
+	def set_password(self, passwd):
+		if not validate_password(passwd): raise ValidationError("Invalid password!")
+		self.password = password.hash(passwd)
 	
 	def set_email(self, email):
 		if not validate_email(email): raise ValidationError("Invalid email!")
 		self.email = email
 		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest()
+	
+	def get_games(self):
+		return [g.to_dict() for g in self.games]
 	
 	def get_profile(self, private=False):
 		result = {
@@ -110,6 +115,7 @@ class User(Model):
 			"motto": self.motto,
 			"email_hash": self.email_hash,
 			"first_name": self.first_name,
+			"games": self.get_games(),
 			"lite": False, # TODO We don't support lite accounts yet :(
 			"capabilities": {"push_notifications": 0},
 			"gamerscore": self.score,
@@ -150,6 +156,10 @@ class User(Model):
 		return Session.current().user
 	
 	@classmethod
+	def find(self, gamertag):
+		return database.find_one(self, "gamertag", gamertag)
+	
+	@classmethod
 	def login(self, gamertag, password):
 		try:
 			user = database.find_one(self, "gamertag", gamertag)
@@ -185,6 +195,7 @@ def users_register(version, appname):
 	except UserExistsError as e:
 		plus_error(400, "User already exists")
 	except Exception as e:
+		traceback.print_exc()
 		plus_error(500, "Internal server error")
 	
 	database.add(user)
@@ -233,7 +244,7 @@ def session_init(version, appname):
 	else:
 		try:
 			user, session = User.login(request.form["gamertag"], request.form["password"])
-			
+			database.commit()
 			return make_login_response(user, session)
 		except:
 			plus_error(1, "Wrong username or password")
@@ -267,7 +278,11 @@ def users_validate(version, appname):
 		case "gamertag":
 			msg = None if validate_gamertag(value) else "Invalid gamertag"
 			if not msg:
-				msg = None if User.lookup({"gamertag": value}) == None else "Gamertag already taken"
+				try:
+					User.find(value)
+					msg = "Gamertag already taken"
+				except:
+					msg = None
 		case "password":
 			msg = None if validate_password(value) else "Invalid password"
 		case "email":
@@ -284,20 +299,60 @@ def users_search(version, appname):
 	if "email_hash" in request.args:
 		criteria = {"email_hash": request.args['email_hash']}
 	
-	users = User.lookup_many(criteria)
+	# TODO: Update for SQL
+	# users = User.find(criteria)
 	
-	return {"success": True, "list": [u.to_dict() for u in users]}
+	return {"success": True, "list": []}
 
 @bp.get("/<int:version>/<appname>/users/<gamertag>")
 def users_lookup_by_gamertag(version, appname, gamertag):
-	user = User.lookup({"gamertag": gamertag})
-	
-	if not user:
+	try:
+		user = User.find(gamertag)
+	except:
+		traceback.print_exc()
 		plus_error(404, "Playername not found!")
 	
-	result = user.to_dict()
+	print(user, dir(user))
+	result = user.get_profile()
 	result["success"] = True
 	return result
+
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/games")
+def get_user_games(version, appname, user_id):
+	return {
+		"success": True,
+		"games": User.get(user_id).get_games(),
+	}
+
+# Users
+
+@bp.put("/<int:version>/<appname>/users/<int:user_id>")
+def users_update(version, appname, user_id):
+	user = User.current()
+	
+	user_info = request.form.to_dict()
+	
+	user.motto = user_info.get("motto", user.motto)
+	user.phone_number = user_info.get("phone_number", user.phone_number)
+	user.badge_id = int(user_info.get("badge_id", user.badge_id))
+	user.first_name = user_info.get("first_name", user.first_name)
+	user.last_name = user_info.get("last_name", user.last_name)
+	user.fullname_privacy = int(user_info.get("fullname_privacy", user.fullname_privacy))
+	
+	user.set_email(user_info.get("email", user_info.email))
+	
+	if ("password" in user_info and "password_confirmation" in user_info):
+		if (user_info['password'] == user_info['password_confirmation']):
+			try:
+				user.set_password(user_info["password"])
+			except ValidationError:
+				plus_error(1, "Password is too short")
+		else:
+			plus_error(1, "Passwords do not match")
+	
+	database.commit()
+	
+	return {"success": True}
 
 """
 class User_old(Persistent):

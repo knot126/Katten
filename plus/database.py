@@ -26,14 +26,14 @@ Model.query = session.query_property()
 def shutdown(exception=None):
 	session.remove()
 
-def find(cls, field, value):
-	return session.execute(select(cls).where(getattr(cls, field) == value)).all()
+def find(cls, feild, value):
+	return session.execute(select(cls).where(getattr(cls, feild) == value)).all()
 
 def find_one(cls, feild, value):
-	return session.execute(select(cls).where(getattr(cls, field) == value)).one()
+	return session.execute(select(cls).where(getattr(cls, feild) == value)).one()[0]
 
-def exists(cls, field, value):
-	return session.query.filter(getattr(cls, field) == value).one_or_none() != None
+def exists(cls, feild, value):
+	return session.query(cls).filter(getattr(cls, feild) == value).one_or_none() != None
 
 def add(obj):
 	session.add(obj)

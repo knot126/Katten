@@ -5,63 +5,33 @@ from utils import *
 bp = Blueprint(__name__, __name__)
 
 # Games
-def list_games(appname):
-	return {
-		"success": True,
-		"games": [
-			{
-				"app_key": appname,
-				"name": appname,
-				"publisher": "Katten Server",
-				"category": "unknown",
-				"featured": False,
-				"leaderboards_count": 0,
-				"achievements_count": 0,
-				"id": 1,
-				"master_product_id": 1,
-				"icon_url": f"http://{request.host}/static/badges/0.png",
-				"app_store_url": "http://example.com/",
-				"feed_url": "http://example.com/",
-				"catalog_url": "http://example.com/",
-				"description": "This is the current game.",
-				"phone_screenshot_urls": [f"http://{request.host}/static/badges/0.png"],
-				"phone_thumbnail_urls": [f"http://{request.host}/static/badges/0.png"],
-				"promotion_image_url": f"http://{request.host}/static/badges/0.png",
-			}
-		],
-	}
+# def list_games(appname):
+# 	return {
+# 		"success": True,
+# 		"games": [
+# 			{
+# 				"app_key": appname,
+# 				"name": appname,
+# 				"publisher": "Katten Server",
+# 				"category": "unknown",
+# 				"featured": False,
+# 				"leaderboards_count": 0,
+# 				"achievements_count": 0,
+# 				"id": 1,
+# 				"master_product_id": 1,
+# 				"icon_url": f"http://{request.host}/static/badges/0.png",
+# 				"app_store_url": "http://example.com/",
+# 				"feed_url": "http://example.com/",
+# 				"catalog_url": "http://example.com/",
+# 				"description": "This is the current game.",
+# 				"phone_screenshot_urls": [f"http://{request.host}/static/badges/0.png"],
+# 				"phone_thumbnail_urls": [f"http://{request.host}/static/badges/0.png"],
+# 				"promotion_image_url": f"http://{request.host}/static/badges/0.png",
+# 			}
+# 		],
+# 	}
 
-@bp.get("/<int:version>/<appname>/users/<int:user_id>/games")
-def get_user_games(version, appname, user_id):
-	return list_games(appname)
 
-# Users
-
-@bp.put("/<int:version>/<appname>/users/<int:user_id>")
-def users_update(version, appname, user_id):
-	user = User.current()
-	
-	user_info = request.form.to_dict()
-	
-	user.set_motto(user_info.get("motto", ""))
-	user.set_phone_number(user_info.get("phone_number", ""))
-	user.set_badge_url(user_info.get("badge_id", ""))
-	user.set_real_name(user_info.get("first_name", ""), user_info.get("last_name", ""))
-	user.set_email(user_info.get("email", ""))
-	user.set_fullname_privacy(user_info.get("fullname_privacy", 0))
-	
-	if ("password" in user_info and "password_confirmation" in user_info):
-		if (user_info['password'] == user_info['password_confirmation']):
-			try:
-				user.set_password(user_info["password"])
-			except ValidationError:
-				plus_error(1, "Password is too short")
-		else:
-			plus_error(1, "Passwords do not match")
-	
-	user.save()
-	
-	return {"success": True}
 
 # @bp.post("/<int:version>/<appname>/users/<int:user_id>/user_data")
 # def user_data_set(version, appname, user_id):

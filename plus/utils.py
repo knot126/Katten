@@ -40,4 +40,4 @@ def sha1(d):
 def unixtime():
 	return int(time.time())
 
-__all__ = ["plus_error", "sha1", "unixtime"]
+__all__ = ["plus_error", "sha1", "unixtime", "make_login_response"]
