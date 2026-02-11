@@ -200,6 +200,100 @@ def get_user_updates(version, appname):
 		"update_interval": PLUS_USER_UPDATE_INTERVAL,
 	}
 
+@bp.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
+def users_buddies(version, appname, user_id):
+	user = User.current()
+	
+	return {
+		"success": True,
+		"list": [],
+		"offset": 0,
+		"total": 0,
+	}
+
+@bp.post("/<int:version>/<appname>/session")
+def session_init(version, appname):
+	# Katten doesn't really care about OAuth 1.0's signing things; it's only
+	# relevant over an insecure HTTP connection anyway.
+	
+	# If there is an auth_token instead of gamertag and password then we're
+	# logging in using an existing session.
+	if "auth_token" in request.form:
+		try:
+			session = Session.find(request.form["auth_token"])
+		except:
+			plus_error(401, "Session is not valid")
+		
+		return make_login_response(session.user, session)
+	else:
+		try:
+			user, session = User.login(request.form["gamertag"], request.form["password"])
+			
+			return make_login_response(user, session)
+		except:
+			plus_error(1, "Wrong username or password")
+
+@bp.post("/<int:version>/<appname>/oauth/authorize_new")
+def oauth_authorize_new(version, appname):
+	"""
+	This should do something oauth related but we can just return the typcial
+	login response.
+	"""
+	
+	try:
+		session = Session.current()
+	except:
+		plus_error(401, "Session is not valid")
+	
+	return make_login_response(session.user, session)
+
+@bp.post("/<int:version>/<appname>/users/validate")
+def users_validate(version, appname):
+	"""
+	Validate if a user's name, email, etc are valid
+	"""
+	
+	field = request.form["field"]
+	value = request.form["value"]
+	
+	msg = "Unknown field"
+	
+	match field:
+		case "gamertag":
+			msg = None if validate_gamertag(value) else "Invalid gamertag"
+			if not msg:
+				msg = None if User.lookup({"gamertag": value}) == None else "Gamertag already taken"
+		case "password":
+			msg = None if validate_password(value) else "Invalid password"
+		case "email":
+			msg = None if validate_email(value) else "Not a valid email"
+		case "first_name" | "last_name":
+			msg = None if validate_first_or_last(value) else f"Invalid {field.replace('_', ' ')}"
+	
+	return {"success": True} if not msg else {"success": False, "error": 1, "error_msg": msg}
+
+@bp.get("/<int:version>/<appname>/users/search")
+def users_search(version, appname):
+	criteria = None
+	
+	if "email_hash" in request.args:
+		criteria = {"email_hash": request.args['email_hash']}
+	
+	users = User.lookup_many(criteria)
+	
+	return {"success": True, "list": [u.to_dict() for u in users]}
+
+@bp.get("/<int:version>/<appname>/users/<gamertag>")
+def users_lookup_by_gamertag(version, appname, gamertag):
+	user = User.lookup({"gamertag": gamertag})
+	
+	if not user:
+		plus_error(404, "Playername not found!")
+	
+	result = user.to_dict()
+	result["success"] = True
+	return result
+
 """
 class User_old(Persistent):
 	def on_init(self):

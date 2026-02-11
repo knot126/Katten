@@ -34,10 +34,14 @@ class Session(Model):
 	def current(self):
 		try:
 			token = request.authorization.get("oauth_token", None)
-			session = database.find(self, "token", token)[0]
+			session = database.find_one(self, "token", token)
 			return session
 		except:
 			raise InvalidSession("Invalid session")
+	
+	@classmethod
+	def find(self, token):
+		return database.find_one(self, "token", token)
 
 bp = Blueprint(__name__, __name__)
 
@@ -78,4 +82,3 @@ def put_device_token(version, appname):
 	return {
 		"success": True,
 	}
-

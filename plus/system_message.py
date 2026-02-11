@@ -35,4 +35,4 @@ class SystemMessage(Model):
 	
 	@classmethod
 	def current_messages(self):
-		return [msg.get_dict() if msg.enabled for msg in database.session.query(self).all()]
+		return [msg.get_dict() for msg in database.session.query(self).all() if msg.enabled]

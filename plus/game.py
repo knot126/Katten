@@ -2,7 +2,9 @@
 App and game info and registration
 """
 
+import database
 from database import Model, Table, Column, Integer, String, Boolean, ForeignKey, relationship
+from flask import Blueprint
 import asset
 
 user_games = Table(
@@ -48,4 +50,16 @@ class Game(Model):
 		game["app_store_url"] = ""
 		game["master_product_id"] = game.id
 		return game
-		
+	
+	@classmethod
+	def all(self):
+		return [game.to_dict() for game in database.session.query(Game).all()]
+
+bp = Blueprint(__name__, __name__)
+
+@bp.get("/<int:version>/<appname>/games")
+def get_games(version, appname):
+	return {
+		"success": True,
+		"games": Game.all(),
+	}
