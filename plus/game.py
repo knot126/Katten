@@ -28,7 +28,7 @@ class Game(Model):
 	featured = Column(Boolean, nullable=False)
 	# leaderboard info
 	
-	players = relationship("User", secondary=user_games, back_populates="games")
+	players = relationship("User", secondary=user_games, back_populates="games", lazy=True)
 	
 	icon = relationship(asset.Asset)
 	

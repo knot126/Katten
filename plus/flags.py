@@ -17,8 +17,8 @@ class Flag(Model):
 	report_time = Column(Integer, nullable=False)
 	reason = Column(String(2000), nullable=False)
 	
-	user = relationship(User, back_populates="submitted_reports")
-	reported_user = relationship(User, back_populates="reports")
+	user = relationship(User, back_populates="submitted_flags", foreign_keys="Flag.user_id")
+	reported_user = relationship(User, back_populates="flags", foreign_keys="Flag.reported_user_id")
 	
 	def __init__(self, user, reported_user, reason):
 		self.user = user
