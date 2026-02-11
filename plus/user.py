@@ -100,6 +100,7 @@ class User(Model):
 	
 	def set_email(self, email):
 		if not validate_email(email): raise ValidationError("Invalid email!")
+		if database.exists(self.__class__, "email", email): raise EmailUsedError("Email is already registered!")
 		self.email = email
 		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest()
 	
@@ -164,11 +165,13 @@ class User(Model):
 		try:
 			user = database.find_one(self, "gamertag", gamertag)
 			if user.check_password(password):
-				session = self.create_session()
+				session = user.create_session()
 				return user, session
 			else:
+				print("Wrong password")
 				raise LoginError("Your username wasn't found or your password wasn't valid.")
 		except:
+			print("Gamertag not found")
 			raise LoginError("Your username wasn't found or your password wasn't valid.")
 	
 
@@ -247,6 +250,7 @@ def session_init(version, appname):
 			database.commit()
 			return make_login_response(user, session)
 		except:
+			traceback.print_exc()
 			plus_error(1, "Wrong username or password")
 
 @bp.post("/<int:version>/<appname>/oauth/authorize_new")
@@ -260,6 +264,21 @@ def oauth_authorize_new(version, appname):
 		session = Session.current()
 	except:
 		plus_error(401, "Session is not valid")
+	
+	if PLUS_AUTO_REGISTER_GAMES:
+		try:
+			Game.find(appname)
+		except:
+			database.add(Game(appname, appname))
+			database.commit()
+	else:
+		print("Auto registering games is not enabled")
+	
+	app = Game.find(appname)
+	
+	if app not in session.user.games:
+		session.user.games.append(app)
+		database.commit()
 	
 	return make_login_response(session.user, session)
 

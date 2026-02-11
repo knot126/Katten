@@ -4,7 +4,6 @@ Login sessions and security
 
 from config import *
 from utils import *
-# from persist import Persistent
 import database
 import secrets
 from database import Model, Column, String, Integer, Boolean, ForeignKey, relationship

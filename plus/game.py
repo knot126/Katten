@@ -4,7 +4,7 @@ App and game info and registration
 
 import database
 from database import Model, Table, Column, Integer, String, Boolean, ForeignKey, relationship
-from flask import Blueprint
+from flask import Blueprint, request
 import asset
 
 user_games = Table(
@@ -32,7 +32,7 @@ class Game(Model):
 	
 	icon = relationship(asset.Asset)
 	
-	def __init__(self, app_key, name, icon, featured=False, publisher="ngmoco", app_store_url="https://apps.apple.com/us/app/smash-hit/id603527166"):
+	def __init__(self, app_key, name, icon=None, featured=False, publisher="ngmoco", app_store_url="https://apps.apple.com/us/app/smash-hit/id603527166"):
 		self.app_key = app_key
 		self.name = name
 		self.icon = icon
@@ -41,15 +41,23 @@ class Game(Model):
 		self.app_store_url = app_store_url
 	
 	def to_dict(self):
-		game = {}
-		game["icon_url"] = f"http://{request.host}/static/badges/0.png" if not self.icon_url else self.icon_url
-		game["catalog_url"] = ""
-		game["feed_url"] = ""
-		game["leaderboards_count"] = 0
-		game["achievements_count"] = 0
-		game["app_store_url"] = ""
-		game["master_product_id"] = game.id
-		return game
+		return {
+			"id": self.id,
+			"app_key": self.app_key,
+			"icon_url": f"http://{request.host}/static/badges/0.png" if not self.icon else self.icon,
+			"publisher": self.publisher,
+			"catalog_url": "http://example.com/",
+			"feed_url": "http://example.com/",
+			"app_store_url": self.app_store_url,
+			"master_product_id": self.id,
+			"featured": self.featured,
+			"leaderboards_count": 0,
+			"achievements_count": 0,
+		}
+	
+	@classmethod
+	def find(self, app_key):
+		return database.find_one(self, "app_key", app_key)
 	
 	@classmethod
 	def all(self):
