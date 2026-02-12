@@ -1,3 +1,4 @@
+from base64 import b64encode, b64decode
 import database
 from game import Game
 from user import User
@@ -26,15 +27,20 @@ class Datum(Model):
 	
 	@classmethod
 	def get(self, user, game, key):
-		pass
+		return database.session.query(self).where(self.game == game, self.user == user, self.key == key).one()
 	
 	@classmethod
 	def set(self, user, game, key, value, privacy):
-		pass
+		try:
+			datum = self.get(user, game, key)
+			datum.value = value
+			datum.privacy = privacy
+		except NoResultFound:
+			database.add(self(user, game, key, value, privacy))
 	
 	@classmethod
-	def keys(self, user, game):
-		pass
+	def all(self, user, game):
+		return database.session.query(self).where(self.game == game, self.user == user).all()
 
 bp = Blueprint(__name__, __name__)
 
@@ -42,13 +48,19 @@ bp = Blueprint(__name__, __name__)
 def user_data_set(version, appname, user_id):
 	"""
 	Save a key-value pair; ignores user id for now as it's not possbile to
-	change someone else's user data atm.
+	change someone else's user data.
 	"""
 	
 	user = User.current()
+	game = Game.find(appname)
 	data = request.form.to_dict()
 	
-	UserAppDataEntry.set(appname, user.get_id(), data["key"], data["privacy"], request.files["value"].read())
+	if user.id != user_id:
+		plus_error(400, "Cannot modify someone else's user data")
+	
+	# UserAppDataEntry.set(appname, user.get_id(), data["key"], data["privacy"], request.files["value"].read())
+	Datum.set(user, game, data["key"], b64encode(request.files["value"].read()), data["privacy"])
+	database.commit()
 	
 	return {
 		"success": True
@@ -60,25 +72,38 @@ def user_data_get_one(version, appname, user_id, key):
 	Get a single value from user data storage
 	"""
 	
-	user = User.current()
-	data = UserAppDataEntry.get(appname, user.get_id(), key)
+	cur_user = User.current()
+	user = User.get(user_id)
+	game = Game.find(appname)
 	
-	return Response(data, mimetype='application/octet-stream')
+	# data = UserAppDataEntry.get(appname, user.get_id(), key)
+	dat = Datum.get(user, game, key)
+	
+	if ((dat.privacy == 0 and user.id != cur_user.id) or (dat.privacy == 1 and not (user.is_friends_with(cur_user) or user.id == cur_user.id))):
+		return plus_error(401, "You don't have permission to view this user data")
+	
+	return Response(b64decode(dat.value), mimetype='application/octet-stream')
 
 @bp.get("/<int:version>/<appname>/users/<int:user_id>/user_data")
 def user_data_get_keys(version, appname, user_id):
 	"""
 	Get a list of keys that are stored for the given user
+	TODO: Support for getting non-private keys of other users
 	"""
 	
 	user = User.current()
+	game = Game.find(appname)
 	
-	datas = []
+	if user.id != user_id:
+		plus_error(401, "You don't have permission to list keys from other users")
 	
-	for entry in UserAppDataEntry.lookup_many({"game": appname, "user": user.get_id()}):
-		datas.append(entry.key)
+	# datas = []
+	
+	# for entry in UserAppDataEntry.lookup_many({"game": appname, "user": user.get_id()}):
+		# datas.append(entry.key)
 	
 	return {
 		"success": True,
-		"datas": datas,
+		"datas": [datum.key for datum in Datum.all(user, game)],
+		# "datas": datas,
 	}
