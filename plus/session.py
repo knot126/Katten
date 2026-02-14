@@ -50,7 +50,7 @@ def session_get_status(version, appname):
 	Get the status of the session for the given device and game.
 	"""
 	
-	from system_messages import SystemMessage
+	from system_message import SystemMessage
 	
 	try:
 		session = Session.current()
@@ -71,7 +71,7 @@ def session_get_status(version, appname):
 			# 	}
 			# ]
 		}
-	except SessionError:
+	except:
 		plus_error(401, "Invalid session")
 
 @bp.put("/<int:version>/<appname>/session")

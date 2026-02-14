@@ -1,5 +1,13 @@
 # News, project status and changelog
 
+## 2026-02-12
+
+The Plus+ server has been switched to SQLAlchemy's ORM for database related stuff. I'm only starting to learn SQLAlchemy so I haven't set up everything optimally just yet, but it should be good enough to work from.
+
+Also I probably haven't mentioned it yet, but I have been working to document the plus API more closely. It turns out documentation is helpful ;P
+
+The touch pets server will move to SQL soon too, but I will probably implement some critical missing Plus+ features (like friend requests and profile photos) first, as well as do more through testing.
+
 ## 2024-10-31
 
 **Katten can now host a basic game of Touch Pets: Cats!** While there is still a LOT of work to do (e.g. anything multiplayer related including Plus+ related stuff, player events, fixing furniture loot, making Katten easier to setup, etc) you can play the game now and have basic progress (like level, coins, inventory and of course your pets) saved.

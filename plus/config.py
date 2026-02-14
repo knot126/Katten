@@ -3,7 +3,8 @@
 PLUS_MONGO_URI = "mongodb://localhost:27017"
 PLUS_DEFAULT_DB = "Plus"
 
-PLUS_DATABASE_URI = "sqlite:///plus.db"
+PLUS_DATABASE_URI = None
+PLUS_SQLITE_DATABASE_PATH = "~/.katten/plus/plus.db"
 
 PLUS_UPLOAD_DIRECTORY = "~/.katten/plus/uploads"
 
@@ -22,6 +23,7 @@ __all__ = [
 	"PLUS_MONGO_URI",
 	"PLUS_DEFAULT_DB",
 	"PLUS_DATABASE_URI",
+	"PLUS_SQLITE_DATABASE_PATH",
 	"PLUS_UPLOAD_DIRECTORY",
 	"PLUS_SESSION_EXPIRY",
 	"PLUS_SESSION_TIME",

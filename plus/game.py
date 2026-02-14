@@ -2,6 +2,8 @@
 App and game info and registration
 """
 
+from config import *
+
 import database
 from database import Model, Table, Column, Integer, String, Boolean, ForeignKey, relationship
 from flask import Blueprint, request
@@ -57,7 +59,16 @@ class Game(Model):
 	
 	@classmethod
 	def find(self, app_key):
-		return database.find_one(self, "app_key", app_key)
+		try:
+			return database.find_one(self, "app_key", app_key)
+		except Exception as e:
+			if PLUS_AUTO_REGISTER_GAMES:
+				game = Game(app_key, app_key)
+				database.add(game)
+				database.commit()
+				return game
+			else:
+				raise e
 	
 	@classmethod
 	def all(self):

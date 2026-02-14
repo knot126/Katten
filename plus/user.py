@@ -99,6 +99,7 @@ class User(Model):
 		self.password = password.hash(passwd)
 	
 	def set_email(self, email):
+		if self.email == email: return
 		if not validate_email(email): raise ValidationError("Invalid email!")
 		if database.exists(self.__class__, "email", email): raise EmailUsedError("Email is already registered!")
 		self.email = email
@@ -124,14 +125,17 @@ class User(Model):
 			
 			# Junk data
 			"level_name": "Trogdor",
-			"level_points": 350,
-			"level_next_points": 1000,
+			"level_points": 1000,
+			"level_next_points": 350,
 		}
+		
+		# HACK: Look up badge id because of the stupid
+		result['badge_id'] = f"http://{request.host}/static/badges/{result['badge_id']}.png"
 		
 		if private:
 			result['email'] = self.email
 			result['phone_number'] = self.phone_number
-			result['password'] = self.password
+			# result['password'] = self.password
 			result['last_name'] = self.last_name
 			result['opt_in'] = False
 			result['fullname_privacy'] = self.fullname_privacy
@@ -268,15 +272,6 @@ def oauth_authorize_new(version, appname):
 	except:
 		plus_error(401, "Session is not valid")
 	
-	if PLUS_AUTO_REGISTER_GAMES:
-		try:
-			Game.find(appname)
-		except:
-			database.add(Game(appname, appname))
-			database.commit()
-	else:
-		print("Auto registering games is not enabled")
-	
 	app = Game.find(appname)
 	
 	if app not in session.user.games:
@@ -346,7 +341,11 @@ def get_user_games(version, appname, user_id):
 		"games": User.get(user_id).get_games(),
 	}
 
-# Users
+def toint(v, fallback=0):
+	try:
+		return int(v)
+	except ValueError as e:
+		return fallback
 
 @bp.put("/<int:version>/<appname>/users/<int:user_id>")
 def users_update(version, appname, user_id):
@@ -356,12 +355,12 @@ def users_update(version, appname, user_id):
 	
 	user.motto = user_info.get("motto", user.motto)
 	user.phone_number = user_info.get("phone_number", user.phone_number)
-	user.badge_id = int(user_info.get("badge_id", user.badge_id))
+	user.badge_id = toint(user_info.get("badge_id", user.badge_id))
 	user.first_name = user_info.get("first_name", user.first_name)
 	user.last_name = user_info.get("last_name", user.last_name)
 	user.fullname_privacy = int(user_info.get("fullname_privacy", user.fullname_privacy))
 	
-	user.set_email(user_info.get("email", user_info.email))
+	user.set_email(user_info.get("email", user_info.get("email", user.email)))
 	
 	if ("password" in user_info and "password_confirmation" in user_info):
 		if (user_info['password'] == user_info['password_confirmation']):

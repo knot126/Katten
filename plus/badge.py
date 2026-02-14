@@ -2,7 +2,8 @@
 Very jank badge implementation, but i dont think its too bad tbh...
 """
 
-from flask import Blueprint
+from flask import Blueprint, request
+import os
 
 bp = Blueprint(__name__, __name__)
 
@@ -13,7 +14,7 @@ def list_badges():
 	badges = []
 	
 	for f in badge_files:
-		badges.append({"id": f, "icon_url": f"http://{request.host}/static/badges/{f}"})
+		badges.append({"id": int(f.removesuffix(".png")), "icon_url": f"http://{request.host}/static/badges/{f}"})
 	
 	return {
 		"success": True,

@@ -4,10 +4,14 @@ Database models
 
 from config import *
 from flask import Blueprint
+from pathlib import Path
 from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import NoResultFound
+
+if not PLUS_DATABASE_URI:
+	PLUS_DATABASE_URI = f"sqlite:///{Path(PLUS_SQLITE_DATABASE_PATH).expanduser()}"
 
 engine = create_engine(PLUS_DATABASE_URI)
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
@@ -15,7 +19,7 @@ session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=en
 class ModelBase:
 	@classmethod
 	def get(self, id):
-		return session.query(self, id)
+		return session.query(self).get(id)
 
 Model = declarative_base(cls=ModelBase, name='Model')
 Model.query = session.query_property()

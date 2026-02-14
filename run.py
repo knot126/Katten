@@ -7,6 +7,7 @@ import os
 import subprocess
 import tomllib
 import time
+from sys import argv
 from pathlib import Path
 
 katten_dir = str(Path(__file__).parent)
@@ -54,9 +55,9 @@ class RunMgr:
 def main():
 	mgr = RunMgr()
 	
-	mgr.run([config['mongo_exec'], '--quiet', '--dbpath', config['mongo_db']])
+	if '--notp' not in argv: mgr.run([config['mongo_exec'], '--quiet', '--dbpath', config['mongo_db']])
 	mgr.run(['flask', 'run', '--debug', '--port', '5100'], 'plus')
-	mgr.run(['flask', 'run', '--debug', '--port', '5200'], 'touchpet')
+	if '--notp' not in argv: mgr.run(['flask', 'run', '--debug', '--port', '5200'], 'touchpet')
 	mgr.run(['flask', 'run', '--debug', '--host', '0.0.0.0', '--port', '5000'], 'router')
 	mgr.run([config['mitmproxy_exec'], '--mode=reverse:http://localhost:5000'])
 	

@@ -1,9 +1,12 @@
+from utils import *
+
 from base64 import b64encode, b64decode
 import database
 from game import Game
 from user import User
-from database import Model, Column, String, Integer, ForeignKey, relationship
-from flask import Blueprint, request
+from database import Model, Column, String, Integer, ForeignKey, relationship, NoResultFound
+from flask import Blueprint, Response, request
+import traceback
 
 class Datum(Model):
 	__tablename__ = "datums"
@@ -77,12 +80,16 @@ def user_data_get_one(version, appname, user_id, key):
 	game = Game.find(appname)
 	
 	# data = UserAppDataEntry.get(appname, user.get_id(), key)
-	dat = Datum.get(user, game, key)
-	
-	if ((dat.privacy == 0 and user.id != cur_user.id) or (dat.privacy == 1 and not (user.is_friends_with(cur_user) or user.id == cur_user.id))):
-		return plus_error(401, "You don't have permission to view this user data")
-	
-	return Response(b64decode(dat.value), mimetype='application/octet-stream')
+	try:
+		dat = Datum.get(user, game, key)
+		
+		if ((dat.privacy == 0 and user.id != cur_user.id) or (dat.privacy == 1 and not (user.is_friends_with(cur_user) or user.id == cur_user.id))):
+			return plus_error(401, "You don't have permission to view this user data")
+		
+		return Response(b64decode(dat.value), mimetype='application/octet-stream')
+	except Exception as e:
+		traceback.print_exc()
+		plus_error(404, "Key does not exist for user")
 
 @bp.get("/<int:version>/<appname>/users/<int:user_id>/user_data")
 def user_data_get_keys(version, appname, user_id):
