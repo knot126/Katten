@@ -20,6 +20,7 @@ import hashlib
 
 import game
 import asset
+import badge
 
 from session import Session
 from game import Game
@@ -103,7 +104,7 @@ class User(Model):
 		if not validate_email(email): raise ValidationError("Invalid email!")
 		if database.exists(self.__class__, "email", email): raise EmailUsedError("Email is already registered!")
 		self.email = email
-		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest()
+		self.email_hash = hashlib.sha1(bytes(email, 'utf-8')).hexdigest().upper()
 	
 	def get_games(self):
 		return [g.to_dict() for g in self.games]
@@ -311,13 +312,14 @@ def users_validate(version, appname):
 
 @bp.get("/<int:version>/<appname>/users/search")
 def users_search(version, appname):
-	criteria = None
-	
 	if "email_hash" in request.args:
-		criteria = {"email_hash": request.args['email_hash']}
-	
-	# TODO: Update for SQL
-	# users = User.find(criteria)
+		try:
+			return {
+				"success": True,
+				"list": [database.find_one(User, "email_hash", request.args['email_hash']).get_profile()]
+			}
+		except:
+			pass
 	
 	return {"success": True, "list": []}
 
@@ -341,10 +343,15 @@ def get_user_games(version, appname, user_id):
 		"games": User.get(user_id).get_games(),
 	}
 
-def toint(v, fallback=0):
+def tobadgeid(v, fallback=0):
+	# HACK again :(
 	try:
 		return int(v)
 	except ValueError as e:
+		for entry in badge.list_badges()["list"][0]["badges"]:
+			if v == entry["icon_url"]:
+				return entry["id"]
+		
 		return fallback
 
 @bp.put("/<int:version>/<appname>/users/<int:user_id>")
@@ -355,7 +362,7 @@ def users_update(version, appname, user_id):
 	
 	user.motto = user_info.get("motto", user.motto)
 	user.phone_number = user_info.get("phone_number", user.phone_number)
-	user.badge_id = toint(user_info.get("badge_id", user.badge_id))
+	user.badge_id = tobadgeid(user_info.get("badge_id", user.badge_id))
 	user.first_name = user_info.get("first_name", user.first_name)
 	user.last_name = user_info.get("last_name", user.last_name)
 	user.fullname_privacy = int(user_info.get("fullname_privacy", user.fullname_privacy))

@@ -55,6 +55,13 @@ def session_get_status(version, appname):
 	try:
 		session = Session.current()
 		
+		app = Game.find(appname)
+		
+		# its broken
+		if app not in session.user.games:
+			session.user.games.append(app)
+			database.commit()
+		
 		return {
 			"success": True,
 			"gamertag": session.user.gamertag,
