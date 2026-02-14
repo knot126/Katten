@@ -5,15 +5,16 @@ Database models
 from config import *
 from flask import Blueprint
 from pathlib import Path
-from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select
+from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select, text
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import NoResultFound
+import re
 
 if not PLUS_DATABASE_URI:
 	PLUS_DATABASE_URI = f"sqlite:///{Path(PLUS_SQLITE_DATABASE_PATH).expanduser()}"
 
-engine = create_engine(PLUS_DATABASE_URI)
+engine = create_engine(PLUS_DATABASE_URI, echo=True)
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 class ModelBase:

@@ -6,7 +6,7 @@ from config import *
 from utils import *
 # from persist import Persistent
 import database
-from database import NoResultFound, Model, Column, String, Integer, Boolean, ForeignKey, relationship
+from database import NoResultFound, Model, Column, String, Integer, Boolean, ForeignKey, relationship, text
 from asset import Asset, upload
 from utils import *
 from flask import Blueprint, request
@@ -320,6 +320,18 @@ def users_search(version, appname):
 			}
 		except:
 			pass
+	
+	if "gamertag" in request.args:
+		expr = request.args['gamertag'].replace('*', '%')
+		offset = int(request.args['offset'])
+		limit = int(request.args['count'])
+		
+		objects = database.session.query(User).filter(text("gamertag LIKE :e")).params({"e": expr}).offset(offset).limit(limit).all()
+		
+		return {
+			"success": True,
+			"list": [user.get_profile() for user in objects],
+		}
 	
 	return {"success": True, "list": []}
 
