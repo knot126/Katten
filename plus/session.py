@@ -8,6 +8,7 @@ import database
 import secrets
 from database import Model, Column, String, Integer, Boolean, ForeignKey, relationship
 from flask import Blueprint, request
+from game import Game
 
 class InvalidSession(Exception):
 	pass
@@ -57,10 +58,10 @@ def session_get_status(version, appname):
 		
 		app = Game.find(appname)
 		
-		# its broken
+		# its not broken anymore :D
 		if app not in session.user.games:
 			session.user.games.append(app)
-			print(session.user.games)
+			print("USER GAMES!!!", session.user.games)
 			database.commit()
 		
 		return {
@@ -79,7 +80,7 @@ def session_get_status(version, appname):
 			# 	}
 			# ]
 		}
-	except:
+	except InvalidSession as e:
 		plus_error(401, "Invalid session")
 
 @bp.put("/<int:version>/<appname>/session")

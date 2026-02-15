@@ -14,7 +14,7 @@ import re
 if not PLUS_DATABASE_URI:
 	PLUS_DATABASE_URI = f"sqlite:///{Path(PLUS_SQLITE_DATABASE_PATH).expanduser()}"
 
-engine = create_engine(PLUS_DATABASE_URI, echo=True)
+engine = create_engine(PLUS_DATABASE_URI)
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 class ModelBase:
