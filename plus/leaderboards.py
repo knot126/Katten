@@ -137,7 +137,7 @@ def get_leaderboard_scores(version, appname, app_key, leaderboard_index):
 		"total": len(scores),
 	}
 
-# @bp.get("/<int:version>/<appname>/games/<app_key>/leaderboards")
+@bp.get("/<int:version>/<appname>/games/<app_key>/leaderboards")
 def get_leaderboards(version, appname, app_key):
 	# TODO: Requests /1/Rolando/games/(null)/leaderboards?user_id=<id> and fucking dies
 	game = Game.find(app_key)

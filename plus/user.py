@@ -240,6 +240,19 @@ def users_buddies(version, appname, user_id):
 
 @bp.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
+	def attempt_to_add_game(session):
+		# Attempt to add game to user's account if they don't already have it
+		try:
+			app = Game.find(appname)
+			
+			# its not broken anymore :D
+			if app not in session.user.games:
+				session.user.games.append(app)
+				print("USER GAMES!!!", session.user.games)
+				database.commit()
+		except:
+			pass
+	
 	# Katten doesn't really care about OAuth 1.0's signing things; it's only
 	# relevant over an insecure HTTP connection anyway.
 	
@@ -248,6 +261,7 @@ def session_init(version, appname):
 	if "auth_token" in request.form:
 		try:
 			session = Session.find(request.form["auth_token"])
+			attempt_to_add_game(session)
 		except:
 			plus_error(401, "Session is not valid")
 		
@@ -255,6 +269,7 @@ def session_init(version, appname):
 	else:
 		try:
 			user, session = User.login(request.form["gamertag"], request.form["password"])
+			attempt_to_add_game(session)
 			database.commit()
 			return make_login_response(user, session)
 		except:
