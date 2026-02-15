@@ -60,6 +60,7 @@ def session_get_status(version, appname):
 		# its broken
 		if app not in session.user.games:
 			session.user.games.append(app)
+			print(session.user.games)
 			database.commit()
 		
 		return {

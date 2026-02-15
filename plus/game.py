@@ -31,6 +31,7 @@ class Game(Model):
 	# leaderboard info
 	
 	players = relationship("User", secondary=user_games, back_populates="games", lazy=True)
+	leaderboards = relationship("Leaderboard", back_populates="game", lazy=True)
 	
 	icon = relationship(asset.Asset)
 	
@@ -46,6 +47,7 @@ class Game(Model):
 		return {
 			"id": self.id,
 			"app_key": self.app_key,
+			"name": self.name,
 			"icon_url": f"http://{request.host}/static/badges/0.png" if not self.icon else self.icon,
 			"publisher": self.publisher,
 			"catalog_url": "http://example.com/",

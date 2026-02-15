@@ -6,7 +6,7 @@ time.
 from flask import Flask, Response, request
 from werkzeug.routing import Rule
 import urllib.request, urllib.parse, http.client
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 app = Flask(__name__)
 
@@ -36,7 +36,7 @@ def route(**unusedParams):
 	netloc_out = SERVER_MAP.get(netloc_in, netloc_in)
 	url_out = url.replace(netloc_in, netloc_out)
 	
-	print(f"{url} -> {url_out}")
+	# print(f"{url} -> {url_out}")
 	
 	response = None
 	
@@ -46,6 +46,8 @@ def route(**unusedParams):
 		return Response("Router: Remote disconnected", 500)
 	except HTTPError as e:
 		response = e
+	except URLError as e:
+		return Response(f"Router: {url_out}: {e}", 500)
 		#return Response(f"Router: Internal error\nInput url: {url}\nOutput url: {url_out}", 500)
 	
 	out_status = response.status if response is not HTTPError else response.code

@@ -8,7 +8,7 @@ import os
 from database import Model, Column, Integer, String, session, select
 from hashlib import sha256
 from pathlib import Path
-from flask import Blueprint
+from flask import Blueprint, request
 
 upload_dir = str(Path(PLUS_UPLOAD_DIRECTORY).expanduser())
 os.makedirs(upload_dir, exist_ok=True)
@@ -25,11 +25,14 @@ class Asset(Model):
 		self.refs = 1
 		Path(f"{upload_dir}/{self.hash}").write_bytes(content)
 	
-	def inc():
+	def inc(self):
 		self.refs += 1
 	
-	def dec():
+	def dec(self):
 		self.refs -= 1
+	
+	def get_url(self):
+		return f"http://{request.host}/user_uploads/{self.hash}"
 
 def upload(data):
 	hash = sha256(content).hexdigest()

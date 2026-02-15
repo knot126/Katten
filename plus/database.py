@@ -5,7 +5,7 @@ Database models
 from config import *
 from flask import Blueprint
 from pathlib import Path
-from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select, text
+from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select, text, desc
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import NoResultFound

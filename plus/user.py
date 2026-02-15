@@ -51,14 +51,14 @@ class User(Model):
 	__tablename__ = "users"
 	
 	id = Column(Integer, primary_key=True)
-	gamertag = Column(String(PLUS_GAMERTAG_MAX_LENGTH), nullable=False, unique=True)
+	gamertag = Column(String(PLUS_GAMERTAG_MAX_LENGTH), nullable=False, unique=True, index=True)
 	score = Column(Integer, nullable=False)
 	level = Column(Integer, nullable=False)
 	badge_id = Column(Integer, nullable=False)
 	photo_id = Column(Integer, ForeignKey("assets.id"))
 	motto = Column(String)
 	email = Column(String, nullable=False, unique=True)
-	email_hash = Column(String, nullable=False)
+	email_hash = Column(String, nullable=False, index=True)
 	phone_number = Column(String)
 	password = Column(String, nullable=False)
 	first_name = Column(String, nullable=False)
@@ -109,11 +109,14 @@ class User(Model):
 	def get_games(self):
 		return [g.to_dict() for g in self.games]
 	
+	def get_badge_url(self):
+		return f"http://{request.host}/static/badges/{self.badge_id}.png"
+	
 	def get_profile(self, private=False):
 		result = {
 			"user_id": self.id,
 			"gamertag": self.gamertag,
-			"badge_id": self.badge_id,
+			"badge_id": self.get_badge_url(),
 			"photo_url": None, # It's not really ready yet...
 			"motto": self.motto,
 			"email_hash": self.email_hash,
@@ -129,9 +132,6 @@ class User(Model):
 			"level_points": 1000,
 			"level_next_points": 350,
 		}
-		
-		# HACK: Look up badge id because of the stupid
-		result['badge_id'] = f"http://{request.host}/static/badges/{result['badge_id']}.png"
 		
 		if private:
 			result['email'] = self.email
@@ -316,6 +316,7 @@ def users_search(version, appname):
 		try:
 			return {
 				"success": True,
+				"offset": 0,
 				"list": [database.find_one(User, "email_hash", request.args['email_hash']).get_profile()]
 			}
 		except:
@@ -330,6 +331,7 @@ def users_search(version, appname):
 		
 		return {
 			"success": True,
+			"offset": offset,
 			"list": [user.get_profile() for user in objects],
 		}
 	
