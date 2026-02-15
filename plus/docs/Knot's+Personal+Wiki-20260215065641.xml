@@ -29,25 +29,69 @@
     </namespaces>
   </siteinfo>
   <page>
-    <title>Plus+</title>
+    <title>Ngmoco and Plus+ sources</title>
     <ns>0</ns>
-    <id>16</id>
+    <id>24</id>
     <revision>
-      <id>227</id>
-      <parentid>226</parentid>
-      <timestamp>2025-08-25T18:16:02Z</timestamp>
+      <id>248</id>
+      <parentid>133</parentid>
+      <timestamp>2026-02-13T15:59:33Z</timestamp>
       <contributor>
         <username>Knot126</username>
         <id>1</id>
       </contributor>
-      <comment>/* Network Requests */</comment>
-      <origin>227</origin>
+      <origin>248</origin>
       <model>wikitext</model>
       <format>text/x-wiki</format>
-      <text bytes="20560" sha1="bvxx0yjn2vbe8q8tj21ou95ca0bvctz" xml:space="preserve">[[File:PlusPlus Logo.png|thumb|The logo for Plus+]]
+      <text bytes="2064" sha1="6c3cinol9jxmz2th5cg29frou8uyc7k" xml:space="preserve">Some interesting sources relating to Plus+, Mobage and Ngmoco
+
+* https://www.pocketgamer.biz/opinion-the-painful-progression-of-dena-and-grees-500-million-us-expansion/
+* https://www.pocketgamer.biz/denas-mobage-platform-off-to-a-slow-start-says-jp-morgan/
+* https://www.mobileworldlive.com/old_latest-stories/dena-sees-profit-from-mobage-west/
+* https://www.pocketgamer.biz/dena-swoops-for-ngmoco-in-403-million-deal/
+* https://www.pocketgamer.biz/opinion-why-ngmoco-is-worth-the-195-million-dena-might-actually-pay-for-it/
+* https://www.pocketgamer.biz/opinion-why-ngmocos-purchase-of-freeverse-is-a-good-deal-for-freeverse/
+* https://www.pocketgamer.biz/ngmoco-to-shutter-miraphonics-freemium-epic-wars-series/
+* https://www.pocketgamer.biz/ngmoco-preparing-to-release-mobage-social-gaming-network-in-the-west-for-ios-and-android/
+* https://www.pocketgamer.biz/opinion-the-fall-and-rise-of-ngmoco/
+* https://www.pocketgamer.biz/ngmoco-opens-developer-access-to-sandbox-environment-for-the-mobage-social-gaming-platform/
+* https://www.pocketgamer.biz/dena-and-ngmoco-roll-out-mobage-social-network-across-english-speaking-world/
+* https://www.serkantoto.com/2011/05/12/dena-beefs-game-engine-support-smartphone-game-developers-social-games/
+* https://blog.ngmoco.com/post/1296593011/dena-to-acquire-ngmoco-a-note-from-the
+* https://www.pocketgamer.biz/stats-drop-plus-has-135-million-active-users-and-hosts-60-million-ngmoco-gameplay-minutes-per-day/
+* https://www.pocketgamer.biz/ngmoco-releases-first-non-ios-game-bringing-pocket-god-to-android-and-windows-phone-7/
+* https://www.pocketgamer.biz/ngmoco-launches-javascript-based-ngcore-game-tech-framework-for-ios-and-android/
+* https://www.pocketgamer.biz/onebiggame-signs-up-matsuuras-winta-for-ngmocos-plus/
+* https://www.pocketgamer.biz/ngmoco-buys-again-snaps-up-touch-pets-developer-stumpdown/
+* https://www.pocketgamer.biz/ngmoco-unveils-its-social-networking-plus-network/
+
+
+also OF:
+
+* https://www.pocketgamer.biz/japanese-social-gaming-platform-gree-buys-openfeint-for-104-million/
+[[Category:Plus+]]</text>
+      <sha1>6c3cinol9jxmz2th5cg29frou8uyc7k</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Plus+</title>
+    <ns>0</ns>
+    <id>16</id>
+    <revision>
+      <id>245</id>
+      <parentid>243</parentid>
+      <timestamp>2026-02-13T15:58:05Z</timestamp>
+      <contributor>
+        <username>Knot126</username>
+        <id>1</id>
+      </contributor>
+      <origin>245</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="23042" sha1="k31cjp9c3k70bapeb4639eg9us33zli" xml:space="preserve">[[File:PlusPlus Logo.png|thumb|The logo for Plus+]]
 '''Plus+''' was a social gaming network created by ngmoco in 2009 for the iPhone. It closed on 31 March 2013&lt;ref&gt;It only ''effectively'' closed on this date, since the last Plus+ branded games ended service this day while Mobage branded games continued to use the same backbend.&lt;/ref&gt; following the purchase of ngmoco by DeNA, who provided a similar service in eastern countries.
 
-Its infrastructure seems to have been used for DeNA's attempted entrance into the western market, '''Mobage West''', which acted as the successor to Plus+. Mobage West was reportedly shut down in 2018 with no notice given, though there is seemingly no reliable source for this.
+Its infrastructure seems to have been reused for DeNA's attempted entrance into the western market, '''Mobage West''', which acted as the successor to Plus+.&lt;ref&gt;Although there exists some evidence that it may have used the exact same infrastructure: see [https://www.youtube.com/watch?v=1XQdf49Zb28&amp;list=PL9lOKwOG5hg7Iaq3F2kr0TJ8UxvK2j9v0&amp;index=16 this youtube video] where the Mobage default profile image can clearly be seen in a Plus+ era game; compare to [https://www.youtube.com/watch?v=xsmdQXlcFoE&amp;list=PL9lOKwOG5hg7Iaq3F2kr0TJ8UxvK2j9v0&amp;index=9 this video] with the old default pfp. Of course this could also just be them deploying the new code to the old instance.&lt;/ref&gt; Mobage West was reportedly shut down in 2018 with no notice given, though there is seemingly no reliable source for this.&lt;ref&gt;Taken from the Wikipedia article, but based on [https://www.pocketgamer.biz/dena-dissolves-us-arm-as-western-games-fail-to-meet-expectations/ this article] it seems more likely it was shut down around 2016.&lt;/ref&gt;
 
 == Plus+ SDK ==
 
@@ -255,12 +299,17 @@ Response:
 Get achievements for this user
 
 * &lt;code&gt;target_app_key&lt;/code&gt; (optional string): The app key of the game to fetch achievements for
+Response:
+
+* &lt;code&gt;user_id&lt;/code&gt; (integer): Achievements user ID
+* &lt;code&gt;achievements&lt;/code&gt; (list of [[Plus+#Achivement|''Achivements'']]): View of achievements for this game
 
 ==== POST invitations ====
 Invite a user to join Plus+ directly via email
 * &lt;code&gt;email&lt;/code&gt;: Email address
 
 ==== DELETE users/:userId/photo ====
+Delete the user's custom profile photo
 
 ==== GET badges ====
 Get the list of public profile icons.
@@ -303,6 +352,9 @@ Get relationships with other users
 * &lt;code&gt;relation&lt;/code&gt; (string): Type of relationship; this is one of &lt;code&gt;enemies&lt;/code&gt;, &lt;code&gt;followers&lt;/code&gt;, or &lt;code&gt;friends&lt;/code&gt;
 * &lt;code&gt;offset&lt;/code&gt; (int): Offset of relationships
 * &lt;code&gt;count&lt;/code&gt; (int): Number of relationships to return
+Response:
+
+*&lt;code&gt;list&lt;/code&gt; (list of [[Plus+#User|''Users'']]): Buddies of the given relationship type
 
 ==== DELETE users/:userId/buddies/:relationshipid ====
 Remove the relationship with another user
@@ -310,11 +362,14 @@ Remove the relationship with another user
 ==== POST users/:userId/buddies ====
 Create a new relationship
 
-* &lt;code&gt;id&lt;/code&gt;: The ID of the user who the user wants to create a relationship with
-* &lt;code&gt;enemy&lt;/code&gt;: The string &lt;code&gt;"true"&lt;/code&gt; if this should be an enemy relationship or &lt;code&gt;"false"&lt;/code&gt; if this is a friendship
+* &lt;code&gt;id&lt;/code&gt; (integer): The ID of the user who the user wants to create a relationship with
+* &lt;code&gt;enemy&lt;/code&gt; (string): The string &lt;code&gt;"true"&lt;/code&gt; if this should be an enemy relationship or &lt;code&gt;"false"&lt;/code&gt; if this is a friendship (not a boolean, for some reason)
+Response:
+
+* &lt;code&gt;buddy&lt;/code&gt; ([[Plus+#User|''User'']]): The user that was just added as a buddy
 
 ==== GET users/:userId ====
-Get profile information for a given user. Responds with a ''[[Plus+#User|User]]'' object.
+Get profile information for a given user. Responds with a ''[[Plus+#User|User]]'' object that has a &lt;code&gt;success&lt;/code&gt; field added.
 
 ==== DELETE session ====
 Log out
@@ -345,7 +400,12 @@ Both have a response of the form:
 ==== POST users ====
 User registration
 
-*
+*&lt;code&gt;user&lt;/code&gt; (''[[Plus+#User|User]]''): Information to register the user with. Does not need to contain all information but should be enough to register the user. 
+*&lt;code&gt;id&lt;/code&gt; (String): Device's unique identifier (UDID)
+*&lt;code&gt;device_type&lt;/code&gt; (String): Device type
+*&lt;code&gt;os_version&lt;/code&gt; (String): OS version
+*&lt;code&gt;locale&lt;/code&gt; (String): Locale
+Response: Same as a [[Plus+#POST session|log in response]] 
 
 ==== POST users/validate ====
 Validate first name, last name, username, or email
@@ -410,14 +470,27 @@ Update the user's information, possibly also updating their password
 * &lt;code&gt;badge_id&lt;/code&gt; (optional): Badge ID (public profile image)
 * &lt;code&gt;password&lt;/code&gt; (optional string): Password, only present if changing password
 * &lt;code&gt;password_confirmation&lt;/code&gt; (optional string): Password (again), only present if changing password
+Response: Basic
 
 ==== POST oauth/authorize_new ====
+Get session tokens for the given consumer key
+
+* &lt;code&gt;key&lt;/code&gt; (string): OAuth consumer key
+
+Response:
+
+* &lt;code&gt;oauth_token&lt;/code&gt; (string): OAuth token
+* &lt;code&gt;oauth_secret&lt;/code&gt; (string): OAuth secret
+* Potentially more (Touch Pets only uses these, but the raw response is passed directly to the app and can be handled by it, so there could be more in other apps)
 
 ==== POST users/:userId/photo ====
 Upload new friends only profile photo
 
-* &lt;code&gt;foo&lt;/code&gt; (string): always &lt;code&gt;bar&lt;/code&gt;
+* &lt;code&gt;foo&lt;/code&gt; (string, optional, ignored): always &lt;code&gt;bar&lt;/code&gt;
 * &lt;code&gt;photo&lt;/code&gt; (file): jpeg file with name &lt;code&gt;photo.jpg&lt;/code&gt;
+Response:
+
+* &lt;code&gt;photo_url&lt;/code&gt; (string): URL of the user's new profile photo
 
 ==== GET users/:userId/user_data ====
 Get a list of all keys stored on the Plus+ server (for the iSave feature)
@@ -427,7 +500,9 @@ Response:
 * &lt;code&gt;datas&lt;/code&gt; (list of strings): List of keys present on the server
 
 ==== GET users/:userId/user_data/:key ====
-Get data blob associated with a key. The &lt;code&gt;Content-Type&lt;/code&gt; of the response should be &lt;code&gt;application/octet-stream&lt;/code&gt;.
+Get data blob associated with a key.
+
+Response: The body is the blob itself and there is no other data. The &lt;code&gt;Content-Type&lt;/code&gt; of the response should be &lt;code&gt;application/octet-stream&lt;/code&gt;.
 
 ==== POST users/:userId/user_data ====
 Set a data blob associated with a key
@@ -435,6 +510,7 @@ Set a data blob associated with a key
 * &lt;code&gt;key&lt;/code&gt; (string): Name of the data blob/its key
 * &lt;code&gt;privacy&lt;/code&gt; (int): Integer denoting if this value can be retrieved publicly, only by friends or only by the user themself (0 = private, 1 = friends, 2 = public)
 * &lt;code&gt;value&lt;/code&gt; (file): Value of the data blob, as a file with the filename set to &lt;code&gt;value&lt;/code&gt;
+Response: Basic
 
 ==== GET games/:appkey ====
 Retrieve information about a game
@@ -456,8 +532,6 @@ Get a list of all games registered on the Plus+ server
 Response:
 
 * &lt;code&gt;games&lt;/code&gt; (list of [[Plus+#Game|''Games'']]): List of objects containing game information
-
-==== GET games/:appid/leaderboards ====
 
 ==== GET challenges/:challengeId ====
 
@@ -492,7 +566,10 @@ Create a social account
 Update account
 
 ==== POST users/:userId/social_accounts/add_buddies ====
-(Probably) search for buddies on social media
+(Probably) add buddies from social media
+
+* &lt;code&gt;social_type&lt;/code&gt; (string): Social media service to request data from
+* &lt;code&gt;social_ids&lt;/code&gt; (string): String containing a list of external user IDs in the format &lt;code&gt;[&lt;/code&gt;&lt;id1&gt;&lt;code&gt;,&lt;/code&gt;&lt;id2&gt;&lt;code&gt;,&lt;/code&gt;...&lt;code&gt;]&lt;/code&gt;
 
 ==== GET user_updates ====
 Fetch user status updates
@@ -506,8 +583,70 @@ Response:
 ** &lt;code&gt;key&lt;/code&gt;: Key
 ** &lt;code&gt;data&lt;/code&gt;: Value
 
-== References ==</text>
-      <sha1>bvxx0yjn2vbe8q8tj21ou95ca0bvctz</sha1>
+== References ==
+&lt;references /&gt;
+[[Category:Plus+]]</text>
+      <sha1>k31cjp9c3k70bapeb4639eg9us33zli</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Touch Pets</title>
+    <ns>0</ns>
+    <id>37</id>
+    <revision>
+      <id>252</id>
+      <parentid>251</parentid>
+      <timestamp>2026-02-14T06:04:55Z</timestamp>
+      <contributor>
+        <username>Knot126</username>
+        <id>1</id>
+      </contributor>
+      <origin>252</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="2121" sha1="5bxmn032marwaeh7mj2fo4gmyvajbw2" xml:space="preserve">'''Touch Pets''' was a series of virtual pet video games developed by [https://web.archive.org/web/20090422231403/http://stumptowngamemachine.com/ Stumptown Game Machine] and published by ngmoco. Three games were produced in total: '''''Touch Pets Dogs''''' (2009), '''''Touch Pets Cats''''' (2010) and '''''Touch Pets Dogs 2''''' (2010), although ''Touch Pets Dogs 2'' is heavily derived from ''Touch Pets Cats'' and is effectively the same game, but with dogs.
+
+Notably, pets could have playdates with friends' pets using the social features of the [[Plus+|Plus+ network]].
+
+== Server ==
+The server for touch pets seems to have been written in PHP, and uses only one route with &lt;code&gt;POST&lt;/code&gt; requests to accomplish all core functionality.
+
+=== Main Endpoint ===
+Most data communication occurs by sending a &lt;code&gt;POST&lt;/code&gt; request to &lt;code&gt;&lt;nowiki&gt;https://cats.ngmoco.com/touchpets/&lt;/nowiki&gt;&lt;/code&gt; (or another subdomain for dogs games) which specifies a command and some parameters for that command, and getting an XML formatted response containing one or more relevant objects.
+
+This post request contains the following fields:
+
+=== Game Data ===
+The game also makes a few requests to PHP scripts inside the &lt;code&gt;gamedata&lt;/code&gt; subfolder (ex: &lt;code&gt;&lt;nowiki&gt;https://cats.ngmoco.com/touchpets/gamedata/get_dlc.php&lt;/nowiki&gt;&lt;/code&gt;), mostly related to game data. 
+
+==== &lt;code&gt;download_dlc.php?hash=''hash''&amp;bv=''version''&lt;/code&gt; ====
+Download DLC given the md5 hash of the bundle and the version of the game
+
+==== &lt;code&gt;get_dlc.php?bv=''version''&lt;/code&gt; ====
+Get a list of available DLC, can just be blank
+
+==== &lt;code&gt;getpid.php&lt;/code&gt; ====
+Unknown, required for the game to start. Can seemingly just be blank.
+
+==== &lt;code&gt;messages.php?&lt;/code&gt; ====
+Unknown. Required for game to start.
+
+==== &lt;code&gt;offercallback.php&lt;/code&gt; ====
+Unknown
+
+==== &lt;code&gt;petmaster.php&lt;/code&gt; ====
+UI for microtransactions tab.
+
+==== &lt;code&gt;rewards.php&lt;/code&gt; ====
+Unknown.
+
+== Links ==
+
+* [https://web.archive.org/web/20100520012126/http://stumptowngamemachine.com/team Credits] (with links to home pages)
+
+[[Category:Plus+]]
+__FORCETOC__</text>
+      <sha1>5bxmn032marwaeh7mj2fo4gmyvajbw2</sha1>
     </revision>
   </page>
 </mediawiki>
