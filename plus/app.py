@@ -15,7 +15,7 @@ import system_message
 import badge
 import misc
 import leaderboards
-# import buddy
+import buddy
 
 if "--initial-setup" in argv:
 	database.create_tables()
@@ -31,4 +31,4 @@ app.register_blueprint(badge.bp)
 app.register_blueprint(app_data.bp)
 app.register_blueprint(misc.bp)
 app.register_blueprint(leaderboards.bp)
-# app.register_blueprint(buddy.bp)
+app.register_blueprint(buddy.bp)

@@ -31,13 +31,16 @@ class Session(Model):
 		self.extra_data = ""
 	
 	@classmethod
-	def current(self):
+	def current(self, do_plus_error=True):
 		try:
 			token = request.authorization.get("oauth_token", None)
 			session = database.find_one(self, "token", token)
 			return session
 		except:
-			raise InvalidSession("Invalid session")
+			if do_plus_error:
+				plus_error(401, "Invalid session")
+			else:
+				raise InvalidSession("Invalid session")
 	
 	@classmethod
 	def find(self, token):
@@ -61,7 +64,6 @@ def session_get_status(version, appname):
 		# its not broken anymore :D
 		if app not in session.user.games:
 			session.user.games.append(app)
-			print("USER GAMES!!!", session.user.games)
 			database.commit()
 		
 		return {

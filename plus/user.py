@@ -69,10 +69,11 @@ class User(Model):
 	
 	games = relationship("Game", secondary=game.user_games, back_populates="players")
 	sessions = relationship("Session", back_populates="user")
-	datums = relationship("Datum", back_populates="user")
+	datums = relationship("Datum", back_populates="user", lazy=True)
+	buddies = relationship("Buddy", back_populates="from_user", foreign_keys="Buddy.from_user_id", lazy=True)
 	
-	flags = relationship("Flag", back_populates="reported_user", foreign_keys="Flag.reported_user_id")
-	submitted_flags = relationship("Flag", back_populates="user", foreign_keys="Flag.user_id")
+	flags = relationship("Flag", back_populates="reported_user", foreign_keys="Flag.reported_user_id", lazy=True)
+	submitted_flags = relationship("Flag", back_populates="user", foreign_keys="Flag.user_id", lazy=True)
 	
 	def __init__(self, gamertag, password, email, badge_id, first_name="", last_name="", age_restricted=False, opt_in=False):
 		self.set_gamertag(gamertag)
