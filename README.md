@@ -22,7 +22,7 @@ These games are tested. Other games may work, but YMMV.
   <tr>
     <td>
     Touch Pets Cats (2010)<br/>
-    Touch Pets Dogs 2<sup>1</sup> (2010)<br/>
+    Touch Pets Dogs 2 (2010)<br/>
     Touch Pets Dogs<sup>1</sup> (2009)
     </td>
     <td>
