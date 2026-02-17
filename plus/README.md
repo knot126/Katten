@@ -2,36 +2,32 @@
 
 This is the module which replicates the Plus+ server's API.
 
-Notes:
+## Project Status
 
-* This only works with earlier games at the moment, Touch Pets will be a later focus.
-* If you want to see the old work for Katten which can kind of get Touch Pets booting check out the `php` folder.
+### What works
 
-## Feature status
+- Most account related actions: Register, log in, continue a session, update account details
+- Games list
+- Key-value storage (cloud save)
+- Buddies (friends and enimies - WIP implementation)
+- Leaderboards
+- User flagging (but no admin UI yet)
 
-- [x] Register
-- [x] Log in
-- [x] Continue a session
-- [ ] Password reset
-- [x] Update account details
-- [x] Badges
-  - Note: Could be improved
-- [ ] Custom friends-only photo
-- [ ] Games list and registration
-- [ ] Buddies (friends and enimies)
-- [x] Key-value storage (cloud save)
-- [ ] Gamer score
-- [ ] Leaderboards
-- [ ] Achievements
-- [ ] Invitations
-- [ ] Admin features
-- [ ] Flagging
+### What does not work yet
 
-And probably other features too.
+- Admin features
+- Gamer score
+- Custom friends-only photo
+- Direct messages (for later versions of Plus+/Mobage)
+- Password resetting
+- Achievements
+- Invitations to join Plus+
 
-### Features that will not be implemented
+### What will probably never be supported
 
-- Push notifications
+- Anything that relies on push notifications, like challenges
+- Anything that relies on purchases or real-world money
+- Anything related to social media accounts (most of these social medias are dead or have fallen out of use anyway)
 
 ### Notes
 
@@ -40,41 +36,20 @@ And probably other features too.
 
 ## Depends
 
-You need to install flask, pymongo and argon2-cffi.
+You need to install `flask`, `sqlalchemy` and `argon2-cffi`.
 
 ### Arch Linux
 
 ```sh
-sudo pacman -Syu python-flask python-pymongo python-argon2_cffi
+sudo pacman -Syu python-flask python-argon2_cffi python-sqlalchemy
 ```
 
 ### Using pip
 
 ```sh
-python3 -m pip install flask pymongo argon2-cffi
+python3 -m pip install flask argon2-cffi sqlalchemy
 ```
 
 ## Design
 
 *TODO: Write this.*
-
-## Testing
-
-Testing can be done with a jailbroken iPhone and modified game binary by using mitmproxy as a reverse proxy to the Plus server:
-
-*start plus server:*
-
-```sh
-# In plus folder:
-$ flask run --debug
-```
-
-(Also remember to run MongoDB)
-
-*start reverse proxy:*
-
-```sh
-$ mitmweb --mode reverse:http://localhost:5000
-```
-
-Then set your iPhone to use a proxy at your computer's IP on port 8080 (mitmproxy default).
