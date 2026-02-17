@@ -10,16 +10,36 @@ If you want to discuss or help with reverse engineering Plus+, please consider [
 
 Katten is currently in its early stages. See [the project news](NEWS.md) and the [Plus+ server readme](plus/README.md) for status updates and what works.
 
-### Supported Games
+### Game Status
 
 These games are tested. Other games may work, but YMMV.
 
- * Touch Pets Dogs 2<sup>1</sup> (2010)
- * Touch Pets Cats (2010)
- * Touch Pets Dogs<sup>1</sup> (2009)
- * Rolando 2 (2009)
- * Topple 2 Plus (2009)
- * Rolando (2008)
+<table>
+  <tr>
+    <th>Game</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td>
+    Touch Pets Cats (2010)<br/>
+    Touch Pets Dogs 2<sup>1</sup> (2010)<br/>
+    Touch Pets Dogs<sup>1</sup> (2009)
+    </td>
+    <td>
+    Relies on <code>touchpet</code> server
+    </td>
+  </tr>
+  <tr>
+    <td>
+    Rolando 2 (2009)<br/>
+    Topple 2 Plus (2009)<br/>
+    Rolando (2008)
+    </td>
+    <td>
+    Only needs Plus+ server, mostly working
+    </td>
+  </tr>
+</table>
 
 <sup>1</sup> Not actually tested, but very similar to supported games and should work with minor tweaking.
 
