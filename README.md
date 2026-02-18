@@ -70,45 +70,42 @@ cd Katten
 
 Install:
 
- * [MongoDB](https://www.mongodb.com/try/download/community-edition/releases)
- * mitmproxy
- * Flask
- * pymongo
- * argon2-cffi (for Python, optional)
-
-Note: MongoDB is not generally available in most distros' repos. It's fine to use a "portable" version that has been extracted from one of the tarballs instead of properly installing it. (We will probably switch away from MongoDB soon anyway.)
+ * flask
+ * sqlalchemy
+ * argon2-cffi (optional)
+ * mitmproxy (optional, for development)
 
 On Arch Linux, you can run:
 
 ```sh
-sudo pacman -Syu mitmproxy python-flask python-pymongo python-argon2_cffi
+sudo pacman -Syu python-flask python-sqlalchemy python-argon2_cffi mitmproxy
 ```
-
-Then download MongoDB and extract it somewhere.
-
-#### Configuration
-
-The is a script (`run.py`) which starts all of the needed servers automatically. It needs `runconfig.toml` to tell it where `mongod` is, where the database is, and which `mitmproxy` command to use.
-
-```toml
-mongo_exec = "mongod"
-mongo_db = "/home/dragon/Documents/katten-data"
-mitmproxy_exec = "mitmweb"
-```
-
- * `mongo_exec` is the command (or path) for `mongod` (the MongoDB server)
- * `mongo_db` is the path to the MongoDB database
- * `mitmproxy_exec` is the command (or path) for `mitmproxy`
 
 #### Starting the server
 
-To start the server, just run:
+Use `run.py` which will start all needed servers:
 
 ```sh
 ./run.py
 ```
 
-... in the Katten directory.
+To start the server using mitmproxy, use the `--mitm` argument with the mitmproxy command you prefer:
+
+```sh
+./run.py --mitm mitmweb
+```
+
+You can also start only the Plus+ server:
+
+```sh
+./run.py --no-touch-pets
+```
+
+#### Configuration and file storage
+
+By default, Katten will use SQLite for its database, and everything will be stored in the `.katten` folder of your home directory.
+
+Currently Katten cannot be easily confiured without editing each server's `config.py`.
 
 ### Game
 
