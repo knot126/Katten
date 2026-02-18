@@ -43,13 +43,16 @@ def post_users_buddies(version, appname, user_id):
 @bp.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
 def get_users_buddies(version, appname, user_id):
 	user = User.current()
-	relation = int(request.form['relation'])
-	offset = int(request.form['offset'])
-	count = int(request.form['count'])
+	user = User.get(user_id)
+	relation = request.args['relation']
+	offset = int(request.args['offset'])
+	count = int(request.args['count'])
 	
 	buds = user.buddies[offset:offset+count]
 	
 	return {
 		"success": True,
-		"list": [bud.to_user.get_profile() for bud in buds if bud.type == relation]
+		"list": [bud.to_user.get_profile() for bud in buds if bud.type == relation],
+		"offset": offset,
+		"total": len([0 for bud in buds if bud.type == relation]),
 	}

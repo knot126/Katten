@@ -4,20 +4,25 @@ TODO:
  - Anything friend related
 """
 
-from flask import Flask, Response, request, g
 from config import *
+from database import *
+import database
+
+from flask import Flask, Response, request, g
 import util
 from persist import Persistent
+from pathlib import Path
 
 ERROR_NOT_AUTHENTICATED = "Not authenticated"
 ERROR_WRONG_VERSION = "Wrong version"
 ERROR_SERVER_UNAVAILABLE = "Server unavailable"
 ERROR_INVALID_RECEIPT = "Invalid receipt"
 
+"""
 class Property(Persistent):
-	"""
+	""
 	A property for any type of object
-	"""
+	""
 	
 	version = 1
 	
@@ -65,9 +70,9 @@ class Property(Persistent):
 		prop.save()
 
 class Model(Persistent):
-	"""
+	""
 	Implements a more structured model for most things in TPC
-	"""
+	""
 	
 	special_id = False
 	
@@ -95,9 +100,9 @@ class Model(Persistent):
 	
 	@classmethod
 	def loadFromValues(self, obj, values):
-		"""
+		""
 		Load values into this object
-		"""
+		""
 		
 		for key, value in values.items():
 			if (key in self.struct):
@@ -105,9 +110,9 @@ class Model(Persistent):
 	
 	@classmethod
 	def add(self, initialValues):
-		"""
+		""
 		Add a new object of this type with initialValues
-		"""
+		""
 		
 		obj = self()
 		self.loadFromValues(obj, initialValues)
@@ -169,7 +174,9 @@ class Model(Persistent):
 		lower = self.__class__.__name__.lower()
 		
 		return f"<{lower}>{self.feildsAsXML()}{self.propertiesAsXML()}</{lower}>"
+"""
 
+"""
 class Player(Model):
 	struct = {}
 
@@ -233,6 +240,7 @@ models = {
 	"pet": Pet,
 	"event": Event,
 }
+"""
 
 app = Flask(__name__)
 
@@ -254,31 +262,7 @@ def getpid_php():
 
 @app.get("/touchpet/gamedata/petmaster.php")
 def petmaster_php():
-	profile = validate_session(request.args.get('st', ''), int(request.args.get('p', '1')))
-	player = Player(int(request.args.get('p', '1')))
-	g.appname = request.args.get('_appname', g.appname)
-	
-	if profile:
-		match request.args['page']:
-			case "intro":
-				coins = player.getProperty(1, 3)
-				
-				return f"""<h2>Hello, {profile['gamertag']}</h2>
-				<p>You have {coins} coins. Please, pick what you would like to order.</p>
-				<a href=\"https://{request.host}/touchpet/gamedata/petmaster.php?page=purchasebones&st={request.args['st']}&p={request.args['p']}\">Buy 10 bones for 250 coins</a>"""
-			
-			case "purchasebones":
-				if player.getProperty(1, 3) >= 250:
-					player.deltaProperty(1, 3, -250)
-					player.deltaProperty(1, 24, 10)
-					return f"<h2>Transaction successful</h2>"
-				else:
-					return f"<h2>You don't have enough coins!</h2>"
-			
-			case _:
-				return "<h1><span style=\"color: red;\">Not a valid page</span></h1>"
-	else:
-		return "<h1><span style=\"color: red;\">Your session is not valid</span></h1>"
+	return "<h1><span style=\"color: red;\">Katten Server does not support microtransactions.</span></h1>"
 
 def validate_session(token, player_id):
 	result = util.post(f"http://{PLUS_SERVER}/1/{g.appname}/session", {"auth_token": token})

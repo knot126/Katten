@@ -2,21 +2,14 @@
 Touch pet server config
 """
 
-# URI for MongoDB
-TP_MONGO_URI = "mongodb://localhost:27017"
-
-# Control which game appnames maps to which database. For reasons of history, PetCat
-# just gets mapped to the generic "TouchPets" db name.
-TP_DATABASE_MAPS = {
-	"PetCat": "TouchPets",
-	"PetDog2": "PetDog2",
-	"PetDog": "PetDog",
-}
-
-# Appname to use if none could be found via the user agent
-TP_DEFAULT_APPNAME = "PetCat"
+TP_DATABASE_URI = None
+TP_DATA_PATH = "~/.katten/touchpets/"
 
 # URI of the Plus+ server
-PLUS_SERVER = "localhost:5100"
+TP_PLUS_SERVER = "localhost:5100"
 
-__all__ = list(globals().keys())
+__all__ = [
+	"TP_DATABASE_URI",
+	"TP_DATA_PATH",
+	"TP_PLUS_SERVER",
+]

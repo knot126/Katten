@@ -228,16 +228,16 @@ def get_user_updates(version, appname):
 		"update_interval": PLUS_USER_UPDATE_INTERVAL,
 	}
 
-@bp.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
-def users_buddies(version, appname, user_id):
-	user = User.current()
-	
-	return {
-		"success": True,
-		"list": [],
-		"offset": 0,
-		"total": 0,
-	}
+# @bp.get("/<int:version>/<appname>/users/<int:user_id>/buddies")
+# def users_buddies(version, appname, user_id):
+# 	user = User.current()
+# 	
+# 	return {
+# 		"success": True,
+# 		"list": [],
+# 		"offset": 0,
+# 		"total": 0,
+# 	}
 
 @bp.post("/<int:version>/<appname>/session")
 def session_init(version, appname):
@@ -361,7 +361,18 @@ def users_lookup_by_gamertag(version, appname, gamertag):
 		traceback.print_exc()
 		plus_error(404, "Playername not found!")
 	
-	print(user, dir(user))
+	result = user.get_profile()
+	result["success"] = True
+	return result
+
+@bp.get("/<int:version>/<appname>/users/<int:user_id>")
+def users_lookup_by_id(version, appname, user_id):
+	try:
+		user = User.get(user_id)
+	except:
+		traceback.print_exc()
+		plus_error(404, "Playername not found!")
+	
 	result = user.get_profile()
 	result["success"] = True
 	return result

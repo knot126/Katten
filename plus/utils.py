@@ -2,7 +2,7 @@
 Basic utilities for the Plus+ server
 """
 
-from flask import make_response
+from flask import make_response, request
 from werkzeug.exceptions import HTTPException
 import hashlib
 import time
@@ -33,6 +33,9 @@ def make_login_response(user, session):
 	
 	return response
 
+def fallback_icon(url=None):
+	return f"http://{request.host}/static/badges/0.png" if not url else url
+
 def sha1(d):
 	if type(d) == str: d = bytes(d, 'utf-8')
 	return hashlib.sha1(d).hexdigest().upper()
@@ -40,4 +43,4 @@ def sha1(d):
 def unixtime():
 	return int(time.time())
 
-__all__ = ["plus_error", "sha1", "unixtime", "make_login_response"]
+__all__ = ["plus_error", "sha1", "unixtime", "make_login_response", "fallback_icon"]

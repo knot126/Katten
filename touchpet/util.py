@@ -10,3 +10,5 @@ def post(url, data):
 
 def time():
 	return int(unixtime())
+
+__all__ = ["post", "time"]

@@ -55,11 +55,15 @@ class RunMgr:
 def main():
 	mgr = RunMgr()
 	
-	if '--notp' not in argv: mgr.run([config['mongo_exec'], '--quiet', '--dbpath', config['mongo_db']])
+	mongo = "--no-mongo" not in argv
+	touch_pets = "--no-touch-pets" not in argv
+	mitm = "--no-mitmproxy" not in argv
+	
+	if mongo: mgr.run([config['mongo_exec'], '--quiet', '--dbpath', config['mongo_db']])
 	mgr.run(['flask', 'run', '--debug', '--port', '5100'], 'plus')
-	if '--notp' not in argv: mgr.run(['flask', 'run', '--debug', '--port', '5200'], 'touchpet')
+	if touch_pets: mgr.run(['flask', 'run', '--debug', '--port', '5200'], 'touchpet')
 	mgr.run(['flask', 'run', '--debug', '--host', '0.0.0.0', '--port', '5000'], 'router')
-	mgr.run([config['mitmproxy_exec'], '--mode=reverse:http://localhost:5000'])
+	if mitm: mgr.run([config['mitmproxy_exec'], '--mode=reverse:http://localhost:5000'])
 	
 	try:
 		while True:

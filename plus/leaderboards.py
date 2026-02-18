@@ -1,4 +1,5 @@
 from config import *
+from utils import *
 from flask import Blueprint, request
 from database import Model, Table, Column, Integer, String, Boolean, ForeignKey, NoResultFound, relationship, desc
 from asset import Asset
@@ -39,7 +40,7 @@ class Leaderboard(Model):
 			"score": score.to_object() if score else None,
 			"level": self.level,
 			"title": self.title,
-			"icon_url": self.icon.get_url() if self.icon else None,
+			"icon_url": fallback_icon(self.icon.get_url() if self.icon else None),
 		}
 	
 	@classmethod
@@ -139,7 +140,12 @@ def get_leaderboard_scores(version, appname, app_key, leaderboard_index):
 
 @bp.get("/<int:version>/<appname>/games/<app_key>/leaderboards")
 def get_leaderboards(version, appname, app_key):
-	# TODO: Requests /1/Rolando/games/(null)/leaderboards?user_id=<id> and fucking dies
+	# HACK: Rolando requires that all leaderboards are registered since it tries
+	# to index the array of scores returned. Theoretically its possible to know
+	# how many there are by looking at the game but that feels too hacky rn.
+	if appname == "Rolando":
+		plus_error(100, "Refusing to honour this request for Rolando to avoid crash")
+	
 	game = Game.find(app_key)
 	user_id = request.args.get("user_id", None)
 	user_id = int(user_id) if user_id != None else user_id

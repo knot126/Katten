@@ -15,6 +15,7 @@ import system_message
 import badge
 import misc
 import leaderboards
+import achievement
 import buddy
 
 if "--initial-setup" in argv:
@@ -32,3 +33,4 @@ app.register_blueprint(app_data.bp)
 app.register_blueprint(misc.bp)
 app.register_blueprint(leaderboards.bp)
 app.register_blueprint(buddy.bp)
+app.register_blueprint(achievement.bp)
