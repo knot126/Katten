@@ -48,12 +48,13 @@ These games are tested. Other games may work, but YMMV.
 ### Requirements
 
  * Up to date Linux distro
- * Jailbroken iPhone running iOS 7 or older with AppSync Unified installed
+ * Jailbroken iPhone running iOS 6 or older with AppSync Unified installed
    * Newer iOS versions are not generally compatible with Plus+ games
    * Plus+ games don't run on touchHLE (yet)
+   * You can probably jailbreak your device with [Legacy iOS Kit](https://github.com/LukeZGD/Legacy-iOS-Kit)
  * An IPA for the game you want to play, if it's not already installed
-   * You will also need the Terminal and the command line version of `installipa` installed
-   * You may also want to use iFile to upload the APK
+   * If you have the app on an old device, [please consider dumping the IPA](https://www.reddit.com/r/LegacyJailbreak/wiki/guides/crackingapps/) of the app before starting if you already have it on your device.
+   * If it's not already installed, you will also need the Terminal and the command line version of `installipa` installed. You may also want to use iFile to upload the IPA to your device.
 
 ### Server
 

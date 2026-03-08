@@ -1,14 +1,14 @@
 """
-TODO:
- - Escape data and general security :-3
- - Anything friend related
+Touch Pets main server
+
+Everything is just going in one file here.
 """
 
 from config import *
 from database import *
 import database
 
-from flask import Flask, Response, request, g
+from flask import Flask, Response, Blueprint, request, g
 import util
 from persist import Persistent
 from pathlib import Path
@@ -242,71 +242,205 @@ models = {
 }
 """
 
-app = Flask(__name__)
+class Property(Model):
+	__tablename__ = "properties"
+	
+	type = Column(String(15), primary_key=True)
+	objectID = Column(Integer, primary_key=True)
+	categoryID = Column(Integer, primary_key=True)
+	propertyID = Column(Integer, primary_key=True)
+	value = Column(Integer, nullable=False)
+	
+	def __init__(self, type, objectID, categoryID, propertyID, value):
+		self.type = type
+		self.objectID = objectID
+		self.categoryID = categoryID
+		self.propertyID = propertyID
+		self.value = value
+	
+	@classmethod
+	def set(self, type, objectID, categoryID, propertyID, value):
+		result = database.session.query(self.type == type.__name__, self.objectID == objectID, self.categoryID == categoryID, self.propertyID == propertyID).one_or_none()
+		
+		if len(result) == 0:
+			prop = self(type.__name__, objectID, categoryID, propertyID, value)
+			database.add(prop)
+		else:
+			result[0].value = value
+	
+	@classmethod
+	def get_all(self, type, objectID):
+		return database.session.query(self).where(self.type == type.__name__, self.objectID == objectID).all()
+	
+	@classmethod
+	def get_all_as_xml_elements(self, type, objectID):
+		props = []
+		
+		for prop in self.get_all(type, objectID):
+			element = Element("property", {"category": str(prop.categoryID), "id": str(prop.propertyID)}, text=str(prop.value))
+			props.append(element)
+		
+		return element
 
-@app.get("/touchpet/gamedata/get_dlc.php")
+class Player:
+	"""Mostly a nothing-class with a few utility methods. We keep user stuff to
+	the Plus+ side mostly"""
+	
+	def __init__(self, _d):
+		self.__dict__ = _d
+		self.username = self.gamertag
+		self.playerID = self.user_id
+		self.success = True
+	
+	def to_xml(self):
+		root = Element(self.__class__.__name__.lower())
+		
+		for col in self.__dict__.keys():
+			if type(getattr(self.__class__, col)) == Column:
+				e = Element(col)
+				e.text = str(getattr(self, col))
+				root.append(e)
+		
+		for prop in Property.get_all_as_xml_elements(self.__class__, self.playerID):
+			root.append(prop)
+		
+		return root
+	
+	@classmethod
+	def current(self):
+		result = util.post(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/session", {"auth_token": request.form["sessionToken"]})
+		
+		if result["success"]:
+			return self(result["profile"])
+		else:
+			raise NotAuthenticated("Not authenticated")
+	
+	@classmethod
+	def find_one(self, id):
+		result = util.get(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/users/{id}")
+		
+		if result["success"]:
+			return self(result)
+		else:
+			raise NoResultFound()
+
+class Pet(Model):
+	__tablename__ = "pets"
+	
+	petID = Column(Integer, primary_key=True)
+	playerID = Column(Integer, nullable=False, index=True)
+	ready = Column(Integer, nullable=False)
+	gender = Column(Integer, nullable=False)
+	timeadopted = Column(Integer, nullable=False)
+	breedID = Column(Integer, nullable=False)
+	petname = Column(String(50), nullable=False)
+	
+	def __init__(self, playerID, gender, breedID, petname):
+		self.playerID = playerID
+		self.ready = 0
+		self.gender = gender
+		self.timeadopted = time()
+		self.breedID = breedID
+		self.petname = petname
+	
+	def to_xml(self):
+		root = super().to_xml()
+		
+		for prop in Property.get_all_as_xml_elements(self.__class__, self.playerID):
+			root.append(prop)
+		
+		return root
+	
+	@classmethod
+	def for_player_as_xml(self, id):
+		pets = self.for_player(id)
+		return self.many_to_xml(pets)
+
+class InventoryItem(Model):
+	__tablename__ = "inventory_items"
+	
+	playerID = Column(Integer, primary_key=True)
+	inventoryID = Column(Integer, primary_key=True)
+	known = Column(Boolean, nullable=False)
+	rewarded = Column(Boolean, nullable=False)
+	gifted = Column(Boolean, nullable=False)
+	owned = Column(Boolean, nullable=False)
+	timeaccquired = Column(Integer, nullable=False)
+	quantity = Column(Integer, nullable=False)
+	decaystate = Column(Integer, nullable=False)
+	frompetid = Column(Integer, ForeignKey("pets.id"), nullable=False)
+	topetid = Column(Integer, ForeignKey("pets.id"), nullable=False)
+	timegifted = Column(Integer, nullable=False)
+	isnew = Column(Boolean, nullable=False)
+
+# ===============================
+#           Game Data
+# ===============================
+gamedata = Blueprint("gamedata", __name__)
+
+@gamedata.get("/touchpet/gamedata/get_dlc.php")
 def get_dlc_php():
 	return ""
 
-@app.get("/touchpet/gamedata/messages.php")
+@gamedata.get("/touchpet/gamedata/messages.php")
 def messages_php():
 	return ""
 
-@app.get("/touchpet/gamedata/rewards.php")
+@gamedata.get("/touchpet/gamedata/rewards.php")
 def rewards_php():
 	return ""
 
-@app.get("/touchpet/gamedata/getpid.php")
+@gamedata.get("/touchpet/gamedata/getpid.php")
 def getpid_php():
 	return ""
 
-@app.get("/touchpet/gamedata/petmaster.php")
+@gamedata.get("/touchpet/gamedata/petmaster.php")
 def petmaster_php():
 	return "<h1><span style=\"color: red;\">Katten Server does not support microtransactions.</span></h1>"
 
-def validate_session(token, player_id):
-	result = util.post(f"http://{PLUS_SERVER}/1/{g.appname}/session", {"auth_token": token})
-	return result["profile"] if result["success"] else None
+class NotAuthenticated(Exception): pass
 
-def get_player_data(plus_profile, player_id):
-	data = "<player>"
-	
-	data += f"<playerID>{player_id}</playerID>"
-	data += f"<username>{plus_profile['gamertag']}</username>"
-	
-	for k, v in plus_profile.items():
-		if k not in {"user_id"}:
-			data += f"<{k}>{v}</{k}>"
-	
-	data += Player(int(player_id)).propertiesAsXML()
-	
-	for inv in Inventory.lookup_many({"playerID": player_id}):
-		data += inv.feildsAsInlineXML()
-	
-	data += "</player>"
-	return data
-
-def get_player_pets(select_id):
-	data = "<pets>"
-	
-	for pet in Pet.lookup_many({"playerID": select_id}):
-		data += pet.toXMLWithProperties()
-	
-	return data + "</pets>"
+# def get_player_data(plus_profile, player_id):
+# 	data = "<player>"
+# 	
+# 	data += f"<playerID>{player_id}</playerID>"
+# 	data += f"<username>{plus_profile['gamertag']}</username>"
+# 	
+# 	for k, v in plus_profile.items():
+# 		if k not in {"user_id"}:
+# 			data += f"<{k}>{v}</{k}>"
+# 	
+# 	data += Player(int(player_id)).propertiesAsXML()
+# 	
+# 	for inv in Inventory.lookup_many({"playerID": player_id}):
+# 		data += inv.feildsAsInlineXML()
+# 	
+# 	data += "</player>"
+# 	return data
+# 
+# def get_player_pets(select_id):
+# 	data = "<pets>"
+# 	
+# 	for pet in Pet.lookup_many({"playerID": select_id}):
+# 		data += pet.toXMLWithProperties()
+# 	
+# 	return data + "</pets>"
 
 def finish_response(data=""):
 	return f"<results><servertime>{util.time()}</servertime>{data}</results>"
 
-@app.post("/touchpet/")
+# ============================
+#          Main Route
+# ============================
+touchpet = Blueprint("touchpet", __name__)
+
+@touchpet.post("/touchpet/")
 def touchpet_index():
 	version = request.form["version"] # Always 1
 	cmd = request.form["cmd"]
 	playerId = int(request.form["playerID"])
-	sessionToken = request.form["sessionToken"]
 	
-	playerProfile = validate_session(sessionToken, playerId)
-	if (not playerProfile):
-		return ERROR_NOT_AUTHENTICATED
+	player = Player.current()
 	
 	# Players are a bit different and not (yet) explicitly stored in the
 	# touch pets database
@@ -428,8 +562,21 @@ def touchpet_index():
 		return Response(finish_response(data), mimetype="text/xml")
 	
 	else:
-		print(f'*** unknown cmd: {cmd} ***')
-		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/xml")
+		print(f'*** ERROR: Unknown command: {cmd}')
+		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/plain")
+
+@touchpet.errorhandler(Exception)
+def touchpet_handle_errors(error):
+	traceback.print_exception(error)
+	return Response(ERROR_SERVER_UNAVAILABLE, 200, content_type="text/plain")
+
+@touchpet.errorhandler(NotAuthenticated)
+def touchpet_handle_not_authed(error):
+	return Response(ERROR_NOT_AUTHENTICATED, 200, content_type="text/plain")
+
+app = Flask(__name__)
+app.register_blueprint(gamedata)
+app.register_blueprint(touchpet)
 
 @app.get("/")
 def index():

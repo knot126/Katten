@@ -10,21 +10,24 @@ import re
 
 __all__ = [
 	"Table", "Boolean", "Integer", "String", "Unicode", "ForeignKey", "select",
-	"text", "desc", "Column", "relationship", "NoResultFound", "Model"
+	"text", "desc", "Column", "relationship", "NoResultFound", "Model",
+	"Element", "TP_APPNAME",
 ]
 
 if len(argv) < 2:
 	print("Missing first argument: should be cats, dogs2, or dogs")
 	exit(127)
 
-TP_DATABASE_URI = TP_DATABASE_URI if TP_DATABASE_URI else ("sqlite:///" + str(Path(TP_DATA_PATH).expanduser()) + argv[1] + ".db")
+TP_APPNAME = argv[1]
+
+TP_DATABASE_URI = TP_DATABASE_URI if TP_DATABASE_URI else ("sqlite:///" + str(Path(TP_DATA_PATH).expanduser()) + TP_APPNAME + ".db")
 
 engine = create_engine(TP_DATABASE_URI)
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 class ModelBase:
 	def to_xml(self):
-		root = Element(self.__class__.__name__)
+		root = Element(self.__class__.__name__.lower())
 		
 		for col in dir(self.__class__):
 			if type(getattr(self.__class__, col)) == Column:
@@ -35,7 +38,7 @@ class ModelBase:
 		return root
 	
 	def to_inline_xml(self):
-		element = Element(self.__class__.__name__)
+		element = Element(self.__class__.__name__.lower())
 		
 		for col in dir(self.__class__):
 			if type(getattr(self.__class__, col)) == Column:
@@ -44,8 +47,36 @@ class ModelBase:
 		return element
 	
 	@classmethod
-	def get(self, id):
+	def get1(self, id):
 		return session.query(self).get(id)
+	
+	@classmethod
+	def get2(self, feild_name, id):
+		return session.query(self).where(getattr(self, idFieldName) == id).one()
+	
+	@classmethod
+	def get(self, *args):
+		if len(args) == 1:
+			return self.get1(*args)
+		else:
+			return self.get2(*args)
+	
+	@classmethod
+	def for_player(self, id):
+		return session.query(self).where(self.playerID == id).all()
+	
+	@classmethod
+	def for_pet(self, id):
+		return session.query(self).where(self.petID == id).all()
+	
+	@classmethod
+	def many_to_xml(self, objects):
+		elements = Element(self.__tablename__)
+		
+		for obj in objects:
+			elements.append(obj.to_xml())
+		
+		return elements
 
 Model = declarative_base(cls=ModelBase, name='Model')
 Model.query = session.query_property()

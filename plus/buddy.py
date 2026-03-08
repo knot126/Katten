@@ -48,6 +48,7 @@ def get_users_buddies(version, appname, user_id):
 	offset = int(request.args['offset'])
 	count = int(request.args['count'])
 	
+	# TODO use an actual query
 	buds = user.buddies[offset:offset+count]
 	
 	return {

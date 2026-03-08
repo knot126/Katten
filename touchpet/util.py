@@ -8,6 +8,11 @@ def post(url, data):
 	result = json.loads(req.read().decode('utf-8'))
 	return result
 
+def get(url):
+	req = urllib.request.urlopen(urllib.request.Request(url, method='GET'))
+	result = json.loads(req.read().decode('utf-8'))
+	return result
+
 def time():
 	return int(unixtime())
 
