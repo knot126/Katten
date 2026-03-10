@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Touch Pets main server
 
@@ -10,8 +11,10 @@ import database
 
 from flask import Flask, Response, Blueprint, request, g
 import util
-from persist import Persistent
+# from persist import Persistent
 from pathlib import Path
+
+import gamedata
 
 ERROR_NOT_AUTHENTICATED = "Not authenticated"
 ERROR_WRONG_VERSION = "Wrong version"
@@ -286,6 +289,8 @@ class Player:
 	"""Mostly a nothing-class with a few utility methods. We keep user stuff to
 	the Plus+ side mostly"""
 	
+	supports_properties = True
+	
 	def __init__(self, _d):
 		self.__dict__ = _d
 		self.username = self.gamertag
@@ -306,6 +311,9 @@ class Player:
 		
 		return root
 	
+	def assert_owned_by(self, playerID):
+		assert(self.playerID == playerID)
+	
 	@classmethod
 	def current(self):
 		result = util.post(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/session", {"auth_token": request.form["sessionToken"]})
@@ -316,7 +324,7 @@ class Player:
 			raise NotAuthenticated("Not authenticated")
 	
 	@classmethod
-	def find_one(self, id):
+	def get(self, id):
 		result = util.get(f"http://{PLUS_SERVER}/1/{TP_APPNAME}/users/{id}")
 		
 		if result["success"]:
@@ -326,6 +334,8 @@ class Player:
 
 class Pet(Model):
 	__tablename__ = "pets"
+	
+	supports_properties = True
 	
 	petID = Column(Integer, primary_key=True)
 	playerID = Column(Integer, nullable=False, index=True)
@@ -339,7 +349,7 @@ class Pet(Model):
 		self.playerID = playerID
 		self.ready = 0
 		self.gender = gender
-		self.timeadopted = time()
+		self.timeadopted = util.time()
 		self.breedID = breedID
 		self.petname = petname
 	
@@ -368,35 +378,91 @@ class InventoryItem(Model):
 	timeaccquired = Column(Integer, nullable=False)
 	quantity = Column(Integer, nullable=False)
 	decaystate = Column(Integer, nullable=False)
-	frompetid = Column(Integer, ForeignKey("pets.id"), nullable=False)
-	topetid = Column(Integer, ForeignKey("pets.id"), nullable=False)
+	frompetid = Column(Integer, ForeignKey("pets.petID"), nullable=False)
+	topetid = Column(Integer, ForeignKey("pets.petID"), nullable=False)
 	timegifted = Column(Integer, nullable=False)
 	isnew = Column(Boolean, nullable=False)
+	
+	def __init__(self, playerID, inventoryID, known, rewarded, gifted, owned, timeaccquired, quantity, decaystate, frompetid, topetid, timegifted, isnew):
+		self.playerID = playerID
+		self.inventoryID = inventoryID
+		self.known = known
+		self.rewarded = rewarded
+		self.gifted = gifted
+		self.owned = owned
+		self.timeaccquired = timeaccquired
+		self.quantity = quantity
+		self.decaystate = decaystate
+		self.frompetid = frompetid
+		self.topetid = topetid
+		self.timegifted = timegifted
+		self.isnew = isnew
+	
+	@classmethod
+	def add(self, playerID, inventoryID, known, rewarded, gifted, owned, timeaccquired, quantity, decaystate, frompetid, topetid, timegifted, isnew):
+		item = database.session.query(self).where(self.playerID == playerID, self.inventoryID == inventoryID).one_or_none()
+		
+		if len(item):
+			item.quantity += 1 # TODO: Is this ok ???
+		else:
+			database.add(self(playerID, inventoryID, known, rewarded, gifted, owned, timeaccquired, quantity, decaystate, frompetid, topetid, timegifted, isnew))
+	
+	@classmethod
+	def for_player_as_xml(self, playerID):
+		items = []
+		
+		for item in self.for_player(playerID):
+			items.append(Element("inventory", {
+				"inventoryID": item.inventoryID,
+				"known": item.known,
+				"rewarded": item.rewarded,
+				"owned": item.owned,
+				"gifted": item.gifted,
+				"timeaccquired": item.timeaccquired,
+				"quantity": item.quantity,
+				"decaystate": item.decaystate,
+				"fromdogID": item.frompetid,
+				"todogID": item.topetid,
+				"timegifted": item.timegifted,
+				"isnew": item.isnew,
+			}))
 
-# ===============================
-#           Game Data
-# ===============================
-gamedata = Blueprint("gamedata", __name__)
+class Event(Model):
+	__tablename__ = "events"
+	
+	eventID = Column(Integer, primary_key=True)
+	typeID = Column(Integer, nullable=False)
+	primaryplayerID = Column(Integer, nullable=False, index=True)
+	secondaryplayerID = Column(Integer, nullable=False, index=True)
+	primaryvalue = Column(Integer, nullable=False)
+	secondaryvalue = Column(Integer, nullable=False)
+	created = Column(Integer, nullable=False)
+	urlencoded_data = Column(String, nullable=False)
+	isGlobal = Column(Boolean, nullable=False)
+	
+	def __init__(eventID, typeID, primaryplayerID, secondaryplayerID, primaryvalue, secondaryvalue, created, urlencoded_data, isGlobal=False):
+		self.eventID = eventID
+		self.typeID = typeID
+		self.primaryplayerID = primaryplayerID
+		self.secondaryplayerID = secondaryplayerID
+		self.primaryvalue = primaryvalue
+		self.secondaryvalue = secondaryvalue
+		self.created = created
+		self.urlencoded_data = urlencoded_data
+		self.isGlobal = isGlobal
+	
+	@classmethod
+	def for_player(self, id):
+		return database.session.query(self).where((self.primaryplayerID == id) | (self.secondaryplayerID == id)).all()
 
-@gamedata.get("/touchpet/gamedata/get_dlc.php")
-def get_dlc_php():
-	return ""
+MODELS = {
+	"player": Player,
+	"pet": Pet,
+	"inventory": InventoryItem,
+	"event": Event,
+}
 
-@gamedata.get("/touchpet/gamedata/messages.php")
-def messages_php():
-	return ""
-
-@gamedata.get("/touchpet/gamedata/rewards.php")
-def rewards_php():
-	return ""
-
-@gamedata.get("/touchpet/gamedata/getpid.php")
-def getpid_php():
-	return ""
-
-@gamedata.get("/touchpet/gamedata/petmaster.php")
-def petmaster_php():
-	return "<h1><span style=\"color: red;\">Katten Server does not support microtransactions.</span></h1>"
+database.create_tables()
 
 class NotAuthenticated(Exception): pass
 
@@ -426,26 +492,57 @@ class NotAuthenticated(Exception): pass
 # 	
 # 	return data + "</pets>"
 
-def finish_response(data=""):
-	return f"<results><servertime>{util.time()}</servertime>{data}</results>"
+# def finish_response(data=""):
+# 	return f"<results><servertime>{util.time()}</servertime>{data}</results>"
+
+def wrap_response(elems):
+	if type(elems) not in {list, tuple}: elems = [elems]
+	
+	root = Element("results") # TODO: I'm not sure if this is how <results> works, but the game doesn't really care.
+	servertime = Element("servertime", str(util.time()))
+	root.append(servertime)
+	
+	for elem in elems:
+		root.append(elem)
+	
+	return xml_tostring(elem, "unicode")
+
+def response_xml(elems=(), commit=True):
+	if commit: database.commit()
+	return Response(wrap_response(elems), content_type="text/xml")
+
+app = Flask(__name__)
+app.register_blueprint(gamedata.gamedata)
 
 # ============================
 #          Main Route
 # ============================
-touchpet = Blueprint("touchpet", __name__)
+# touchpet = Blueprint("touchpet", __name__)
 
-@touchpet.post("/touchpet/")
+@app.post("/touchpet/")
 def touchpet_index():
 	version = request.form["version"] # Always 1
 	cmd = request.form["cmd"]
-	playerId = int(request.form["playerID"])
+	playerId_untrusted = int(request.form["playerID"])
 	
 	player = Player.current()
 	
 	# Players are a bit different and not (yet) explicitly stored in the
 	# touch pets database
 	if cmd == "player":
-		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+		return response_xml(player.to_xml(), False)
+	
+	elif cmd == "pets":
+		# print("Get pets")
+		# return Response(finish_response(get_player_pets(int(request.form["selectID"]))), mimetype="text/xml")
+		return response_xml(Pet.for_player_as_xml(int(request.form["selectID"])))
+	
+	elif cmd == "setpetready":
+		pet = Pet.get(int(request.form["petID"]))
+		pet.assert_owned_by(player.playerID)
+		pet.ready = int(request.form["ready"])
+		database.commit()
+		return response_xml(pet.to_xml())
 	
 	elif cmd == "decayinventory":
 		print("Decay inventory")
@@ -458,84 +555,124 @@ def touchpet_index():
 	
 	elif cmd == "clearfriends":
 		# ???
-		return Response(finish_response(), mimetype="text/xml")
+		# return Response(finish_response(), mimetype="text/xml")
+		return response_xml(player.to_xml())
 	
-	elif cmd == "pets":
-		# for testing
-		# return Response(finish_response("<pets><pet><petID>5</petID><petname>Jens</petname></pet></pets>"), mimetype="text/xml")
-		print("Get pets")
-		return Response(finish_response(get_player_pets(int(request.form["selectID"]))), mimetype="text/xml")
-	
-	elif cmd == "setpetready":
-		print("Set pet ready")
-		pet = Pet.lookup({"_id": int(request.form["petID"])})
-		pet.ready = int(request.form["ready"])
-		pet.save()
-		
-		return Response(finish_response(pet.toXMLWithProperties()), mimetype="text/xml")
+# 	elif cmd == "setpetready":
+# 		print("Set pet ready")
+# 		pet = Pet.lookup({"_id": int(request.form["petID"])})
+# 		pet.ready = int(request.form["ready"])
+# 		pet.save()
+# 		
+# 		return Response(finish_response(pet.toXMLWithProperties()), mimetype="text/xml")
 	
 	elif cmd == "mega":
 		# mega
-		return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend><username>knot2</username></friend></friends></mega>'), mimetype="text/xml")
+		# return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend><username>knot2</username></friend></friends></mega>'), mimetype="text/xml")
+		# TODO
+		mega = Element("mega", {"count": "0", "totalcount": "0", "pluscount": "0", "followercount": "0", "totalpluscount": "0", "totalfollowercount": "0"})
+		return response_xml(mega)
 	
 	elif cmd == "missionsmega":
-		return Response(finish_response(), mimetype="text/xml")
+		# TODO
+		mega = Element("mega", {"count": "0", "totalcount": "0", "pluscount": "0", "followercount": "0", "totalpluscount": "0", "totalfollowercount": "0"})
+		return response_xml(mega)
 	
 	elif cmd == "playerevents":
-		# HACK: We probably need to consider the primaryplayerID and
-		# secondaryplayerID
-		return Response(finish_response(Event.asXMLForAllMatching({"playerID": playerId})), mimetype="text/xml")
+		# return Response(finish_response(Event.asXMLForAllMatching({"playerID": playerId})), mimetype="text/xml")
+		return response_xml(Event.for_player_as_xml())
 	
 	elif cmd == "queuerecharge":
 		# seems related to push notifications, which we can ignore and just send
 		# back a player object (which is the acceptable class for this request)
-		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+		return response_xml(player.to_xml())
 	
 	elif cmd == "cancelrecharge":
 		# seems related to push notifications, which we can ignore and just send
 		# back a player object (which is the acceptable class for this request)
-		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
+		return response_xml(player.to_xml())
 	
 	elif cmd.startswith("add"):
-		modelName = cmd[3:]
-		print(f"Adding item of type {modelName}")
+		class_name = cmd[3:]
 		
-		data = None
+		if class_name not in MODELS:
+			raise Exception("Class name not in models!")
 		
-		if modelName == "inventory":
-			models[modelName].addOrUpdate(request.form)
-			data = get_player_data(playerProfile, playerId)
-		else:
-			obj = models[modelName].add(request.form)
-			data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+		data = MODELS[class_name].add(request.args)
 		
-		if modelName == "player":
-			data = get_player_data(playerProfile, playerId)
+		return response_xml(data)
 		
-		return Response(finish_response(data), mimetype="text/xml")
+# 		data = None
+# 		
+# 		if modelName == "inventory":
+# 			models[modelName].addOrUpdate(request.form)
+# 			data = get_player_data(playerProfile, playerId)
+# 		else:
+# 			obj = models[modelName].add(request.form)
+# 			data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+# 		
+# 		if modelName == "player":
+# 			data = get_player_data(playerProfile, playerId)
+# 		
+# 		return Response(finish_response(data), mimetype="text/xml")
 	
 	elif cmd.startswith("set") and cmd.endswith("property"):
-		modelName = cmd[3:-8]
-		print(f"Setting property for type {modelName}")
-		obj = models[modelName](int(request.form[f"{modelName}ID"]))
+		class_name = cmd[3:-8]
 		
+		# TODO Don't hardcode this, rely on Model.supports_properties instead
+		if class_name not in {"pet", "player"}:
+			raise Exception("Does not suppport properties!")
+		
+		model = MODELS[class_name].get(int(request.form[f"{class_name}ID"]))
+		model.assert_owned_by(player.playerID)
+		
+		# Set one
 		if "propertyvalue" in request.form:
-			obj.setProperty(request.form["categoryID"], request.form["propertyID"], request.form["propertyvalue"])
+			Property.set(
+				MODELS[class_name],
+				int(request.form[f"{class_name}ID"]),
+				int(request.form["categoryID"]),
+				int(request.form["propertyID"]),
+				int(request.form["propertyvalue"])
+			)
+		# Set many
 		else:
-			try:
-				i = 0
-				while True:
-					obj.setProperty(request.form[f"categoryID[{i}]"], request.form[f"propertyID[{i}]"], request.form[f"propertyvalue[{i}]"])
-					i += 1
-			except KeyError:
-				pass
+			index = 0
+			
+			while f"propertyvalue[{index}]" in request.form:
+				Property.set(
+					MODELS[class_name],
+					int(request.form[f"{class_name}ID"]),
+					int(request.form[f"categoryID[{index}]"]),
+					int(request.form[f"propertyID[{index}]"]),
+					int(request.form[f"propertyvalue[{index}]"])
+				)
+				index += 1
 		
-		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+		database.commit()
 		
-		if modelName == "player":
-			data = get_player_data(playerProfile, playerId)
+		return response_xml(model.to_xml(), False)
 		
-		return Response(finish_response(data), mimetype="text/xml")
+# 		print(f"Setting property for type {modelName}")
+# 		obj = models[modelName](int(request.form[f"{modelName}ID"]))
+# 		
+# 		if "propertyvalue" in request.form:
+# 			obj.setProperty(request.form["categoryID"], request.form["propertyID"], request.form["propertyvalue"])
+# 		else:
+# 			try:
+# 				i = 0
+# 				while True:
+# 					obj.setProperty(request.form[f"categoryID[{i}]"], request.form[f"propertyID[{i}]"], request.form[f"propertyvalue[{i}]"])
+# 					i += 1
+# 			except KeyError:
+# 				pass
+# 		
+# 		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
+# 		
+# 		if modelName == "player":
+# 			data = get_player_data(playerProfile, playerId)
+# 		
+# 		return Response(finish_response(data), mimetype="text/xml")
 	
 	elif cmd.startswith("delta") and cmd.endswith("property"):
 		# TODO DRY, again
@@ -565,39 +702,37 @@ def touchpet_index():
 		print(f'*** ERROR: Unknown command: {cmd}')
 		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/plain")
 
-@touchpet.errorhandler(Exception)
+@app.errorhandler(Exception)
 def touchpet_handle_errors(error):
 	traceback.print_exception(error)
 	return Response(ERROR_SERVER_UNAVAILABLE, 200, content_type="text/plain")
 
-@touchpet.errorhandler(NotAuthenticated)
+@app.errorhandler(NotAuthenticated)
 def touchpet_handle_not_authed(error):
 	return Response(ERROR_NOT_AUTHENTICATED, 200, content_type="text/plain")
 
-app = Flask(__name__)
-app.register_blueprint(gamedata)
-app.register_blueprint(touchpet)
+# app.register_blueprint(touchpet)
 
 @app.get("/")
 def index():
-	return "Katten Touch Pets server"
+	return f"Katten Touch Pets server (running for {TP_APPNAME})"
 
-@app.before_request
-def configure_appname():
-	"""
-	Try to guess the appname from the user agent. Doing this allows us to use
-	multiple apps (e.g. TPD, TPD2, TPC) with different data while running only
-	one server.
-	"""
-	
-	ua = [x.split('/') for x in request.user_agent.string.split()]
-	
-	for entry in ua:
-		if entry[0] in TP_DATABASE_MAPS:
-			g.appname = entry[0]
-			break
-	else:
-		g.appname = TP_DEFAULT_APPNAME
+# @app.before_request
+# def configure_appname():
+# 	"""
+# 	Try to guess the appname from the user agent. Doing this allows us to use
+# 	multiple apps (e.g. TPD, TPD2, TPC) with different data while running only
+# 	one server.
+# 	"""
+# 	
+# 	ua = [x.split('/') for x in request.user_agent.string.split()]
+# 	
+# 	for entry in ua:
+# 		if entry[0] in TP_DATABASE_MAPS:
+# 			g.appname = entry[0]
+# 			break
+# 	else:
+# 		g.appname = TP_DEFAULT_APPNAME
 
 # Misc todos:
 # - should really store uuid's and check against them so we don't end up in a

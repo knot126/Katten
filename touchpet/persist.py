@@ -5,6 +5,8 @@ This provides a standard interface for objects that will be stored in the
 database and makes them a lot nicer to work with.
 """
 
+raise ImportError("Dont use persist anymore.")
+
 from config import *
 from flask import g
 import sys
