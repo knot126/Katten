@@ -43,6 +43,9 @@ def exists(cls, feild, value):
 def add(obj):
 	session.add(obj)
 
+def delete(obj):
+	session.delete(obj)
+
 def commit():
 	session.commit()
 

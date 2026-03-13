@@ -92,3 +92,13 @@ def put_device_token(version, appname):
 	return {
 		"success": True,
 	}
+
+@bp.delete("/<int:version>/<appname>/session")
+def delete_session(version, appname):
+	session = Session.current()
+	database.delete(session)
+	database.commit()
+	
+	return {
+		"success": True,
+	}

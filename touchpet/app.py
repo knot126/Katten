@@ -208,20 +208,20 @@ class InventoryItem(Model):
 	@classmethod
 	def add(self, player, args):
 		self.add_internal(
-				player.playerID, 
-				int(args['inventoryID']),
-				int(args['known']),
-				int(args['rewarded']),
-				int(args['gifted']),
-				int(args['owned']),
-				# int(args['timeaccquired']),
-				int(args['quantity']),
-				int(args['fromdogID']),
-				int(args['todogID']),
-				int(args['timegifted']),
-				bool(args['isnew']),
-			)
-		
+			player.playerID, 
+			int(args['inventoryID']),
+			int(args['known']),
+			int(args['rewarded']),
+			int(args['gifted']),
+			int(args['owned']),
+			# int(args['timeaccquired']),
+			int(args['quantity']),
+			int(args['fromdogID']),
+			int(args['todogID']),
+			int(args['timegifted']),
+			bool(args['isnew']),
+		)
+		database.commit()
 		return player.to_xml()
 	
 	@classmethod
@@ -229,7 +229,7 @@ class InventoryItem(Model):
 		item = database.session.query(self).where(self.playerID == playerID, self.inventoryID == inventoryID).one_or_none()
 		
 		if item:
-			item.quantity += 1 # TODO: Is this ok ???
+			item.quantity += 1 # TODO: Is this ok ??? no...
 		else:
 			item = self(playerID, inventoryID, known, rewarded, gifted, owned, quantity, frompetid, topetid, timegifted, isnew)
 			database.add(item)
@@ -270,6 +270,9 @@ class InventoryItem(Model):
 
 class Event(Model):
 	__tablename__ = "events"
+	
+	# TODO!!! Add primarypetID and secondarypetID because I'm stupid and forgot
+	# them!!!
 	
 	eventID = Column(Integer, primary_key=True)
 	typeID = Column(Integer, nullable=False)
@@ -395,8 +398,9 @@ def touchpet_index():
 		return response_xml(Pet.for_player_as_xml(int(request.form["selectID"])))
 	
 	elif cmd == "setpetready":
+		# HACK see note in delta/set property
 		if request.form["petID"] == '0':
-			return response_xml(Pet.for_player_as_xml(int(request.form["selectID"])))
+			return response_xml(Pet.for_player_as_xml(player.playerID))
 		
 		pet = Pet.get(int(request.form["petID"]))
 		pet.assert_owned_by(player.playerID)
@@ -443,7 +447,7 @@ def touchpet_index():
 	
 	elif cmd == "playerevents":
 		# return Response(finish_response(Event.asXMLForAllMatching({"playerID": playerId})), mimetype="text/xml")
-		return response_xml(Event.for_player_as_xml(), False)
+		return response_xml(Event.for_player_as_xml(player.playerID), False)
 	
 	elif cmd == "queuerecharge":
 		# seems related to push notifications, which we can ignore and just send
@@ -493,6 +497,8 @@ def touchpet_index():
 		if class_name not in {"pet", "player"}:
 			raise Exception("Does not suppport properties!")
 		
+		# HACK because sometimes katten would send an invalid ID and fuck
+		# everything up!
 		if (request.form[f"{class_name}ID"] == '0'):
 			# Invaild id, to prevent spamming return something valid looking
 			return response_xml(MODELS[class_name].for_player_as_xml(player.playerID), False)
