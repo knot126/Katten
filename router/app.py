@@ -20,10 +20,11 @@ app.url_map.add(Rule("/static/<path:morepath>", endpoint = "route"))
 
 SERVER_MAP = {
 	"app.plusplus.com": "localhost:5100",
-	"dogs2.ngmoco.com": "localhost:5200",
 	"cats.ngmoco.com": "localhost:5200",
-	"ax.init.itunes.apple.com": "localhost:5200",
-	"phobos.apple.com": "localhost:5200",
+	"dogs2.ngmoco.com": "localhost:5201",
+	"dogs.ngmoco.com": "localhost:5202",
+	# "ax.init.itunes.apple.com": "localhost:5200",
+	# "phobos.apple.com": "localhost:5200",
 }
 
 @app.endpoint("route")
