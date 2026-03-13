@@ -34,3 +34,7 @@ app.register_blueprint(misc.bp)
 app.register_blueprint(leaderboards.bp)
 app.register_blueprint(buddy.bp)
 app.register_blueprint(achievement.bp)
+
+@app.teardown_appcontext
+def shutdown_database_session(exception=None):
+    database.session.remove()
