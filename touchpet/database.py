@@ -4,6 +4,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, Table, Boolean, Integer, String, Unicode, ForeignKey, select, text, desc
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base, relationship
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.exc import NoResultFound
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import tostring as xml_tostring
@@ -30,7 +31,8 @@ class ModelBase:
 		root = Element(self.__class__.__name__.lower())
 		
 		for col in dir(self.__class__):
-			if type(getattr(self.__class__, col)) == Column:
+			# print(f"type of {col} is {type(getattr(self.__class__, col))}")
+			if type(getattr(self.__class__, col)) == InstrumentedAttribute:
 				e = Element(col)
 				e.text = str(getattr(self, col))
 				root.append(e)
@@ -99,6 +101,9 @@ def exists(cls, feild, value):
 
 def add(obj):
 	session.add(obj)
+
+def delete(obj):
+	session.delete(obj)
 
 def commit():
 	session.commit()

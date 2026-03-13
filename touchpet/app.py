@@ -39,25 +39,26 @@ class Property(Model):
 	
 	@classmethod
 	def set(self, type, objectID, categoryID, propertyID, value):
-		result = database.session.query(self.type == type.__name__, self.objectID == objectID, self.categoryID == categoryID, self.propertyID == propertyID).one_or_none()
+		result = database.session.query(self).where(self.type == type.__name__, self.objectID == objectID, self.categoryID == categoryID, self.propertyID == propertyID).one_or_none()
+		print(result)
 		
-		if len(result) == 0:
+		if not result:
 			prop = self(type.__name__, objectID, categoryID, propertyID, value)
 			database.add(prop)
 		else:
-			result[0].value = value
+			result.value = value
 	
 	@classmethod
 	def delta(self, type, objectID, categoryID, propertyID, deltavalue):
-		result = database.session.query(self.type == type.__name__, self.objectID == objectID, self.categoryID == categoryID, self.propertyID == propertyID).one_or_none()
+		result = database.session.query(self).where(self.type == type.__name__, self.objectID == objectID, self.categoryID == categoryID, self.propertyID == propertyID).one_or_none()
 		
-		if len(result) == 0:
+		if not result:
 			# We should probably never get here, but just in case this seems
 			# like reasonable behaviour.
 			prop = self(type.__name__, objectID, categoryID, propertyID, deltavalue)
 			database.add(prop)
 		else:
-			result[0].value += deltavalue
+			result.value += deltavalue
 	
 	@classmethod
 	def get_all(self, type, objectID):
@@ -72,7 +73,15 @@ class Property(Model):
 			element.text = str(prop.value)
 			props.append(element)
 		
-		return element
+		return props
+	
+	@classmethod
+	def clear_all(self, type, objectID):
+		"""Clear all properties from an object given its id. Most useful for
+		resetting players/pets/etc when testing stuff."""
+		
+		for prop in self.get_all(type, objectID):
+			database.delete(prop)
 
 class Player:
 	"""Mostly a nothing-class with a few utility methods. We keep user stuff to
@@ -147,10 +156,17 @@ class Pet(Model):
 	def to_xml(self):
 		root = super().to_xml()
 		
-		for prop in Property.get_all_as_xml_elements(self.__class__, self.playerID):
+		for prop in Property.get_all_as_xml_elements(self.__class__, self.petID):
 			root.append(prop)
 		
 		return root
+	
+	@classmethod
+	def add(self, player, args):
+		kitty = self(player.playerID, int(args['gender']), int(args['breedID']), args['petname'])
+		database.add(kitty)
+		database.commit()
+		return self.many_to_xml([kitty])
 	
 	@classmethod
 	def for_player_as_xml(self, id):
@@ -174,29 +190,51 @@ class InventoryItem(Model):
 	timegifted = Column(Integer, nullable=False)
 	isnew = Column(Boolean, nullable=False)
 	
-	def __init__(self, playerID, inventoryID, known, rewarded, gifted, owned, timeaccquired, quantity, decaystate, frompetid, topetid, timegifted, isnew):
+	def __init__(self, playerID, inventoryID, known, rewarded, gifted, owned, quantity, frompetid, topetid, timegifted, isnew):
 		self.playerID = playerID
 		self.inventoryID = inventoryID
 		self.known = known
 		self.rewarded = rewarded
 		self.gifted = gifted
 		self.owned = owned
-		self.timeaccquired = timeaccquired
+		self.timeaccquired = util.time()
 		self.quantity = quantity
-		self.decaystate = decaystate
+		self.decaystate = 0
 		self.frompetid = frompetid
 		self.topetid = topetid
 		self.timegifted = timegifted
 		self.isnew = isnew
 	
 	@classmethod
-	def add(self, playerID, inventoryID, known, rewarded, gifted, owned, timeaccquired, quantity, decaystate, frompetid, topetid, timegifted, isnew):
+	def add(self, player, args):
+		self.add_internal(
+				player.playerID, 
+				int(args['inventoryID']),
+				int(args['known']),
+				int(args['rewarded']),
+				int(args['gifted']),
+				int(args['owned']),
+				# int(args['timeaccquired']),
+				int(args['quantity']),
+				int(args['fromdogID']),
+				int(args['todogID']),
+				int(args['timegifted']),
+				bool(args['isnew']),
+			)
+		
+		return player.to_xml()
+	
+	@classmethod
+	def add_internal(self, playerID, inventoryID, known, rewarded, gifted, owned, quantity, frompetid, topetid, timegifted, isnew):
 		item = database.session.query(self).where(self.playerID == playerID, self.inventoryID == inventoryID).one_or_none()
 		
-		if len(item):
+		if item:
 			item.quantity += 1 # TODO: Is this ok ???
 		else:
-			database.add(self(playerID, inventoryID, known, rewarded, gifted, owned, timeaccquired, quantity, decaystate, frompetid, topetid, timegifted, isnew))
+			item = self(playerID, inventoryID, known, rewarded, gifted, owned, quantity, frompetid, topetid, timegifted, isnew)
+			database.add(item)
+		
+		return item
 	
 	@classmethod
 	def decay(self, playerID, inventoryID, decay):
@@ -208,7 +246,7 @@ class InventoryItem(Model):
 		items = []
 		
 		for item in self.for_player(playerID):
-			items.append(Element("inventory", {
+			attrs = {
 				"inventoryID": item.inventoryID,
 				"known": item.known,
 				"rewarded": item.rewarded,
@@ -221,7 +259,14 @@ class InventoryItem(Model):
 				"todogID": item.topetid,
 				"timegifted": item.timegifted,
 				"isnew": item.isnew,
-			}))
+			}
+			
+			for key in attrs:
+				attrs[key] = str(attrs[key]) if type(attrs[key]) != bool else str(int(attrs[key]))
+			
+			items.append(Element("inventory", attrs))
+		
+		return items
 
 class Event(Model):
 	__tablename__ = "events"
@@ -236,8 +281,8 @@ class Event(Model):
 	urlencoded_data = Column(String, nullable=False)
 	isGlobal = Column(Boolean, nullable=False)
 	
-	def __init__(eventID, typeID, primaryplayerID, secondaryplayerID, primaryvalue, secondaryvalue, created, urlencoded_data, isGlobal=False):
-		self.eventID = eventID
+	def __init__(self, typeID, primaryplayerID, secondaryplayerID, primaryvalue, secondaryvalue, created, urlencoded_data, isGlobal=False):
+		# self.eventID = eventID
 		self.typeID = typeID
 		self.primaryplayerID = primaryplayerID
 		self.secondaryplayerID = secondaryplayerID
@@ -246,6 +291,24 @@ class Event(Model):
 		self.created = created
 		self.urlencoded_data = urlencoded_data
 		self.isGlobal = isGlobal
+	
+	@classmethod
+	def add(self, player, args):
+		event = self(
+			int(args['typeID']),
+			int(args['primaryplayerID']),
+			int(args['secondaryplayerID']),
+			# int(args['primarypetID']), - when the fuck did these get lost??
+			# int(args['secondarypetID']),
+			int(args['primaryvalue']),
+			int(args['secondaryvalue']),
+			int(args['created']),
+			args.get('urlencoded_data', ''), # TODO make mandatory when we know this is the name
+		)
+		database.add(event)
+		database.commit()
+		
+		return event.to_xml()
 	
 	@classmethod
 	def for_player(self, id):
@@ -302,7 +365,7 @@ def wrap_response(elems):
 	return xml_tostring(root, "unicode")
 
 def response_xml(elems=(), commit=True):
-	if commit: database.commit()
+	# if commit: database.commit()
 	return Response(wrap_response(elems), content_type="text/xml")
 
 app = Flask(__name__)
@@ -332,6 +395,9 @@ def touchpet_index():
 		return response_xml(Pet.for_player_as_xml(int(request.form["selectID"])))
 	
 	elif cmd == "setpetready":
+		if request.form["petID"] == '0':
+			return response_xml(Pet.for_player_as_xml(int(request.form["selectID"])))
+		
 		pet = Pet.get(int(request.form["petID"]))
 		pet.assert_owned_by(player.playerID)
 		pet.ready = int(request.form["ready"])
@@ -347,6 +413,7 @@ def touchpet_index():
 # 		
 # 		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 		InventoryItem.decay(player.playerID, int(request.form["inventoryID"]), int(request.form["decayamount"]))
+		database.commit()
 		return response_xml(player.to_xml())
 	
 	elif cmd == "clearfriends":
@@ -389,13 +456,17 @@ def touchpet_index():
 		return response_xml(player.to_xml(), False)
 	
 	elif cmd.startswith("add"):
-		# Generic handling of add command
-		class_name = cmd[3:]
+		# Generic handling of add command - it is expected that all classes
+		# implement the add classmethod
+		class_name = cmd.removeprefix("add")
 		
 		if class_name not in MODELS:
 			raise Exception("Class name not in models!")
 		
-		data = MODELS[class_name].add(request.args)
+		data = MODELS[class_name].add(player, request.form)
+		
+		# IMPORTANT: Implementations of the add() method are REQUIRED to
+		# commit to the database themselves!
 		
 		return response_xml(data)
 		
@@ -415,12 +486,16 @@ def touchpet_index():
 	
 	elif cmd.startswith(('set', 'delta')) and cmd.endswith("property"):
 		# Generic handling of property set and delta commands
-		class_name = cmd[3:-8]
+		class_name = cmd.removeprefix("set").removeprefix("delta").removesuffix("property")
 		should_delta = cmd.startswith('delta')
 		
 		# TODO Don't hardcode this, rely on Model.supports_properties instead
 		if class_name not in {"pet", "player"}:
 			raise Exception("Does not suppport properties!")
+		
+		if (request.form[f"{class_name}ID"] == '0'):
+			# Invaild id, to prevent spamming return something valid looking
+			return response_xml(MODELS[class_name].for_player_as_xml(player.playerID), False)
 		
 		model = MODELS[class_name].get(int(request.form[f"{class_name}ID"]))
 		model.assert_owned_by(player.playerID)
@@ -503,6 +578,23 @@ def touchpet_index():
 	else:
 		# print(f'*** ERROR: Unknown command: {cmd}')
 		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/plain")
+
+@app.get("/touchpet/debug_clear/<type_name>/<int:id>")
+def debug_clear(type_name, id):
+	Property.clear_all(MODELS[type_name], id)
+	
+	if request.args.get('delete', '0') == '1':
+		database.delete(MODELS[type_name].get(id))
+	
+	database.commit()
+	
+	return Response("Debug clear properties success", 200)
+
+@app.get("/touchpet/debug_deltacoins/<int:id>/<int:amount>")
+def debug_deltacoins(id, amount):
+	Property.delta(Player, id, 1, 3, amount)
+	database.commit()
+	return Response(f"Added {amount} coins to player id {id}", 200)
 
 @app.errorhandler(Exception)
 def touchpet_handle_errors(error):
