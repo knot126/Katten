@@ -13,6 +13,11 @@ def get(url):
 	result = json.loads(req.read().decode('utf-8'))
 	return result
 
+def http_delete(url, headers):
+	req = urllib.request.urlopen(urllib.request.Request(url, headers=headers, method='DELETE'))
+	result = json.loads(req.read().decode('utf-8'))
+	return result
+
 def time():
 	return int(unixtime())
 

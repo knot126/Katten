@@ -505,7 +505,8 @@ def import_pet_form():
 		</head>
 		<body>
 			<h1>Import Pets from Cached Data</h1>
-			<form action="" method="post">
+			<p>If you have cached pet data (<code>.Pet</code> files) you can import your pets to your Katten account here!</p>
+			<form action="" enctype="multipart/form-data" method="post">
 				<label for="plususer">Plus+ Username:</label>
 				<input type="text" name="plususer" placeholder="Gamername" />
 				<br/>
@@ -524,17 +525,77 @@ def import_pet_form():
 	</html>
 	""", 200)
 
+def parse_ns_keyed_archive(root):
+	"""Parse a (basic and non-recursive) NSKeyedArchiver archive file"""
+	
+	def parse(objects, object):
+		obj_type = type(object)
+		
+		if obj_type == plistlib.UID:
+			if object == plistlib.UID(0): return None
+			return parse(objects, objects[object.data])
+		elif obj_type == list:
+			return [parse(objects, x) for x in object]
+		elif obj_type == dict:
+			if '$class' in object:
+				if 'NS.keys' in object:
+					keys = object['NS.keys']
+					values = object['NS.objects']
+					return {parse(objects, keys[i]): parse(objects, values[i]) for i in range(len(keys))}
+				elif 'NS.objects' in object:
+					return [parse(objects, d) for d in object['NS.objects']]
+				elif 'NS.time' in object:
+					return object['NS.time']
+				else:
+					return {k: parse(objects, v) for k, v in object.items() if k != '$class'}
+			else:
+				return None
+		else:
+			return object
+	
+	top = list(root['$top'].values())[0]
+	objs = root['$objects']
+	return parse(objs, top)
+
 @app.post("/touchpet/import_pet")
 def import_pet():
-	login_response = util.post(f"http://{TP_PLUS_SERVER}/1/PetCat/session", f"gamertag={request.form['plususer']}&password={request.form['pluspass']}")
+	# get user id
+	login_response = util.post(f"http://{TP_PLUS_SERVER}/1/PetCat/session", {
+		"gamertag": request.form['plususer'],
+		"password": request.form['pluspass'],
+	})
 	
 	if not login_response['success']:
 		return Response(f"Failed: could not log in to Plus+: {login_response['error_msg']}", 500)
 	
-	token = login_response['auth_token']
+	oauth_token = login_response['auth_token']
 	user_id = login_response['user_id']
 	
-	plistlib.loads(request.files['pet'].read(), fmt=plistlib.FMT_BINARY)
+	util.http_delete(f"http://{TP_PLUS_SERVER}/1/PetCat/session", {"Authorization": f'oauth oauth_token={oauth_token}'})
+	
+	# parse pet data
+	pet_data = parse_ns_keyed_archive(plistlib.loads(request.files['pet'].read(), fmt=plistlib.FMT_BINARY))
+	
+	pet = Pet(user_id, pet_data['gender'], pet_data['breedID'], pet_data['petname'])
+	pet.timeadopted = pet_data['timeadopted']
+	pet.ready = pet_data['ready']
+	
+	database.add(pet)
+	database.commit() # HACK: We can't know the objectID until we commit, but 
+	                  # we need to know the ID to set properties :/
+	
+	# Add properties for pet
+	for category, properties in pet_data['propertiesByCategory'].items():
+		category_id = int(category.removeprefix("category_"))
+		
+		for property, value in properties.items():
+			property_id = int(property.removeprefix("property_"))
+			Property.set(Pet, pet.petID, category_id, property_id, value)
+	
+	# Save it to database
+	database.commit()
+	
+	return {'success': True, 'pet_id': pet.petID, 'old_pet_data': pet_data}
 
 @app.errorhandler(Exception)
 def touchpet_handle_errors(error):
