@@ -249,7 +249,7 @@ def session_init(version, appname):
 			# its not broken anymore :D
 			if app not in session.user.games:
 				session.user.games.append(app)
-				print("USER GAMES!!!", session.user.games)
+				# print("USER GAMES!!!", session.user.games)
 				database.commit()
 		except:
 			pass

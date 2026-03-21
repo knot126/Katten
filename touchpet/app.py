@@ -11,6 +11,7 @@ import database
 
 from flask import Flask, Response, Blueprint, request, g
 import util
+import plistlib
 from pathlib import Path
 
 import gamedata
@@ -40,7 +41,6 @@ class Property(Model):
 	@classmethod
 	def set(self, type, objectID, categoryID, propertyID, value):
 		result = database.session.query(self).where(self.type == type.__name__, self.objectID == objectID, self.categoryID == categoryID, self.propertyID == propertyID).one_or_none()
-		print(result)
 		
 		if not result:
 			prop = self(type.__name__, objectID, categoryID, propertyID, value)
@@ -83,7 +83,7 @@ class Property(Model):
 		for prop in self.get_all(type, objectID):
 			database.delete(prop)
 
-class Player:
+class Friend:
 	"""Mostly a nothing-class with a few utility methods. We keep user stuff to
 	the Plus+ side mostly"""
 	
@@ -131,6 +131,9 @@ class Player:
 			return self(result)
 		else:
 			raise NoResultFound()
+
+class Player(Friend):
+	supports_properties = True
 
 class Pet(Model):
 	__tablename__ = "pets"
@@ -214,7 +217,6 @@ class InventoryItem(Model):
 			int(args['rewarded']),
 			int(args['gifted']),
 			int(args['owned']),
-			# int(args['timeaccquired']),
 			int(args['quantity']),
 			int(args['fromdogID']),
 			int(args['todogID']),
@@ -271,24 +273,25 @@ class InventoryItem(Model):
 class Event(Model):
 	__tablename__ = "events"
 	
-	# TODO!!! Add primarypetID and secondarypetID because I'm stupid and forgot
-	# them!!!
-	
 	eventID = Column(Integer, primary_key=True)
 	typeID = Column(Integer, nullable=False)
 	primaryplayerID = Column(Integer, nullable=False, index=True)
 	secondaryplayerID = Column(Integer, nullable=False, index=True)
+	primarypetID = Column(Integer, nullable=False)
+	secondarypetID = Column(Integer, nullable=False)
 	primaryvalue = Column(Integer, nullable=False)
 	secondaryvalue = Column(Integer, nullable=False)
 	created = Column(Integer, nullable=False)
 	urlencoded_data = Column(String, nullable=False)
 	isGlobal = Column(Boolean, nullable=False)
 	
-	def __init__(self, typeID, primaryplayerID, secondaryplayerID, primaryvalue, secondaryvalue, created, urlencoded_data, isGlobal=False):
+	def __init__(self, typeID, primaryplayerID, secondaryplayerID, primarypetID, secondarypetID, primaryvalue, secondaryvalue, created, urlencoded_data, isGlobal=False):
 		# self.eventID = eventID
 		self.typeID = typeID
 		self.primaryplayerID = primaryplayerID
 		self.secondaryplayerID = secondaryplayerID
+		self.primarypetID = primarypetID
+		self.secondarypetID = secondarypetID
 		self.primaryvalue = primaryvalue
 		self.secondaryvalue = secondaryvalue
 		self.created = created
@@ -301,8 +304,8 @@ class Event(Model):
 			int(args['typeID']),
 			int(args['primaryplayerID']),
 			int(args['secondaryplayerID']),
-			# int(args['primarypetID']), - when the fuck did these get lost??
-			# int(args['secondarypetID']),
+			int(args['primarypetID']), #- when the fuck did these get lost??
+			int(args['secondarypetID']),
 			int(args['primaryvalue']),
 			int(args['secondaryvalue']),
 			int(args['created']),
@@ -328,32 +331,6 @@ database.create_tables()
 
 class NotAuthenticated(Exception): pass
 
-# def get_player_data(plus_profile, player_id):
-# 	data = "<player>"
-# 	
-# 	data += f"<playerID>{player_id}</playerID>"
-# 	data += f"<username>{plus_profile['gamertag']}</username>"
-# 	
-# 	for k, v in plus_profile.items():
-# 		if k not in {"user_id"}:
-# 			data += f"<{k}>{v}</{k}>"
-# 	
-# 	data += Player(int(player_id)).propertiesAsXML()
-# 	
-# 	for inv in Inventory.lookup_many({"playerID": player_id}):
-# 		data += inv.feildsAsInlineXML()
-# 	
-# 	data += "</player>"
-# 	return data
-# 
-# def get_player_pets(select_id):
-# 	data = "<pets>"
-# 	
-# 	for pet in Pet.lookup_many({"playerID": select_id}):
-# 		data += pet.toXMLWithProperties()
-# 	
-# 	return data + "</pets>"
-
 def wrap_response(elems):
 	if type(elems) not in {list, tuple}: elems = [elems]
 	
@@ -377,7 +354,6 @@ app.register_blueprint(gamedata.gamedata)
 # ============================
 #          Main Route
 # ============================
-# touchpet = Blueprint("touchpet", __name__)
 
 @app.post("/touchpet/")
 def touchpet_index():
@@ -387,14 +363,10 @@ def touchpet_index():
 	
 	player = Player.current()
 	
-	# Players are a bit different and not (yet) explicitly stored in the
-	# touch pets database
 	if cmd == "player":
 		return response_xml(player.to_xml(), False)
 	
 	elif cmd == "pets":
-		# print("Get pets")
-		# return Response(finish_response(get_player_pets(int(request.form["selectID"]))), mimetype="text/xml")
 		return response_xml(Pet.for_player_as_xml(int(request.form["selectID"])))
 	
 	elif cmd == "setpetready":
@@ -409,13 +381,6 @@ def touchpet_index():
 		return response_xml(pet.to_xml())
 	
 	elif cmd == "decayinventory":
-# 		print("Decay inventory")
-# 		item = Inventory.lookup({"playerID": playerId, "inventoryID": int(request.form["inventoryID"])})
-# 		
-# 		if (item):
-# 			item.decay(request.form["decayamount"])
-# 		
-# 		return Response(finish_response(get_player_data(playerProfile, playerId)), mimetype="text/xml")
 		InventoryItem.decay(player.playerID, int(request.form["inventoryID"]), int(request.form["decayamount"]))
 		database.commit()
 		return response_xml(player.to_xml())
@@ -425,17 +390,8 @@ def touchpet_index():
 		# return Response(finish_response(), mimetype="text/xml")
 		return response_xml(player.to_xml())
 	
-# 	elif cmd == "setpetready":
-# 		print("Set pet ready")
-# 		pet = Pet.lookup({"_id": int(request.form["petID"])})
-# 		pet.ready = int(request.form["ready"])
-# 		pet.save()
-# 		
-# 		return Response(finish_response(pet.toXMLWithProperties()), mimetype="text/xml")
-	
 	elif cmd == "mega":
 		# mega
-		# return Response(finish_response('<mega count="0" totalcount="0" pluscount="0" followercount="0" totalpluscount="0" totalfollowercount="0"><friends><friend><username>knot2</username></friend></friends></mega>'), mimetype="text/xml")
 		# TODO
 		mega = Element("mega", {"count": "0", "totalcount": "0", "pluscount": "0", "followercount": "0", "totalpluscount": "0", "totalfollowercount": "0"})
 		return response_xml(mega, False)
@@ -446,7 +402,6 @@ def touchpet_index():
 		return response_xml(mega, False)
 	
 	elif cmd == "playerevents":
-		# return Response(finish_response(Event.asXMLForAllMatching({"playerID": playerId})), mimetype="text/xml")
 		return response_xml(Event.for_player_as_xml(player.playerID), False)
 	
 	elif cmd == "queuerecharge":
@@ -473,20 +428,6 @@ def touchpet_index():
 		# commit to the database themselves!
 		
 		return response_xml(data)
-		
-# 		data = None
-# 		
-# 		if modelName == "inventory":
-# 			models[modelName].addOrUpdate(request.form)
-# 			data = get_player_data(playerProfile, playerId)
-# 		else:
-# 			obj = models[modelName].add(request.form)
-# 			data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
-# 		
-# 		if modelName == "player":
-# 			data = get_player_data(playerProfile, playerId)
-# 		
-# 		return Response(finish_response(data), mimetype="text/xml")
 	
 	elif cmd.startswith(('set', 'delta')) and cmd.endswith("property"):
 		# Generic handling of property set and delta commands
@@ -535,55 +476,8 @@ def touchpet_index():
 		database.commit()
 		
 		return response_xml(model.to_xml(), False)
-		
-# 		print(f"Setting property for type {modelName}")
-# 		obj = models[modelName](int(request.form[f"{modelName}ID"]))
-# 		
-# 		if "propertyvalue" in request.form:
-# 			obj.setProperty(request.form["categoryID"], request.form["propertyID"], request.form["propertyvalue"])
-# 		else:
-# 			try:
-# 				i = 0
-# 				while True:
-# 					obj.setProperty(request.form[f"categoryID[{i}]"], request.form[f"propertyID[{i}]"], request.form[f"propertyvalue[{i}]"])
-# 					i += 1
-# 			except KeyError:
-# 				pass
-# 		
-# 		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
-# 		
-# 		if modelName == "player":
-# 			data = get_player_data(playerProfile, playerId)
-# 		
-# 		return Response(finish_response(data), mimetype="text/xml")
 	
-	# elif cmd.startswith("delta") and cmd.endswith("property"):
-		# TODO DRY, again
-# 		modelName = cmd[5:-8]
-# 		print(f"Delta {modelName} property")
-# 		obj = models[modelName](int(request.form[f"{modelName}ID"]))
-# 		
-# 		if "propertyvalue" in request.form:
-# 			obj.deltaProperty(request.form["categoryID"], request.form["propertyID"], request.form["propertyvalue"])
-# 		else:
-# 			try:
-# 				i = 0
-# 				while True:
-# 					obj.deltaProperty(request.form[f"categoryID[{i}]"], request.form[f"propertyID[{i}]"], request.form[f"propertyvalue[{i}]"])
-# 					i += 1
-# 			except KeyError:
-# 				pass
-# 		
-# 		data = f"<{modelName}s>{obj.toXMLWithProperties()}</{modelName}s>"
-# 		
-# 		if modelName == "player":
-# 			data = get_player_data(playerProfile, playerId)
-# 		
-# 		return Response(finish_response(data), mimetype="text/xml")
-	
-	else:
-		# print(f'*** ERROR: Unknown command: {cmd}')
-		return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/plain")
+	return Response(ERROR_SERVER_UNAVAILABLE, mimetype="text/plain")
 
 @app.get("/touchpet/debug_clear/<type_name>/<int:id>")
 def debug_clear(type_name, id):
@@ -602,6 +496,46 @@ def debug_deltacoins(id, amount):
 	database.commit()
 	return Response(f"Added {amount} coins to player id {id}", 200)
 
+@app.get("/touchpet/import_pet")
+def import_pet_form():
+	return Response("""
+	<html>
+		<head>
+			<title>Import Pets from Cached Data</title>
+		</head>
+		<body>
+			<h1>Import Pets from Cached Data</h1>
+			<form action="" method="post">
+				<label for="plususer">Plus+ Username:</label>
+				<input type="text" name="plususer" placeholder="Gamername" />
+				<br/>
+				
+				<label for="pluspass">Plus+ Password:</label>
+				<input type="password" name="pluspass" placeholder="Password" />
+				<br/>
+				
+				<label for="pet">Pet file:</label>
+				<input type="file" name="pet" />
+				<br/>
+				
+				<input type="submit" value="Import Pet" />
+			</form>
+		</body>
+	</html>
+	""", 200)
+
+@app.post("/touchpet/import_pet")
+def import_pet():
+	login_response = util.post(f"http://{TP_PLUS_SERVER}/1/PetCat/session", f"gamertag={request.form['plususer']}&password={request.form['pluspass']}")
+	
+	if not login_response['success']:
+		return Response(f"Failed: could not log in to Plus+: {login_response['error_msg']}", 500)
+	
+	token = login_response['auth_token']
+	user_id = login_response['user_id']
+	
+	plistlib.loads(request.files['pet'].read(), fmt=plistlib.FMT_BINARY)
+
 @app.errorhandler(Exception)
 def touchpet_handle_errors(error):
 	traceback.print_exception(error)
@@ -614,8 +548,6 @@ def touchpet_handle_not_authed(error):
 @app.teardown_appcontext
 def shutdown_database_session(exception=None):
     database.session.remove()
-
-# app.register_blueprint(touchpet)
 
 @app.get("/")
 def index():
